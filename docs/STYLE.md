@@ -101,6 +101,32 @@ Two things learned the hard way:
   closed room a hand-written rotation is a guess, and the first frame rendered
   a wall.
 
+## Hidden faces are a claim, and claims get checked
+
+A face marked `hidden` shares one 4px filler rect. If it turns out to be
+visible it renders as a flat grey slab - which is exactly what ran along the
+top of the couch for three rounds of renders, because the base top was marked
+hidden while the cushions only cover the middle of it.
+
+Two markers, because they are different claims:
+
+- **`hidden`** - another part of this prop covers the face. `kit.check_hidden`
+  proves it geometrically and the audit fails if it cannot.
+- **`unseen`** - the world covers it: a poster's back against a wall, a plinth
+  underside on the floor. Nothing inside the prop can verify that, so it is
+  exempt from the check and has to be justified in the code.
+
+## Placement is checked, not eyeballed
+
+`blender_scene.validate()` measures support surfaces from the prop definitions
+and refuses to build a scene where anything floats or overhangs. Shelf contents
+had been sitting at round numbers 30mm above the steel decks; a 30mm float is
+invisible in a coordinate table and obvious in a render.
+
+`check_overlaps()` catches props standing inside each other by intersecting
+plan footprints. The figure was placed 270mm from a barrel of 280mm radius and
+rendered inside it.
+
 ## Naming
 
 ```

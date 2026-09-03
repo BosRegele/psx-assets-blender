@@ -38,7 +38,7 @@ than a low-poly model with a blurry texture stretched over it.
 | `SM_Chair_Wood_01` | 72 | 256x256 | furniture |
 | `SM_Stool_Metal_01` | 100 | 256x256 | furniture |
 | `SM_Couch_Worn_01` | 96 | 512x1024 | furniture |
-| `SM_Bunk_Steel_01` | 96 | 512x1024 | furniture |
+| `SM_Bunk_Steel_01` | 96 | 1024x1024 | furniture |
 | `SM_Map_Wall_01` | 36 | 256x512 | furniture |
 | `SM_Board_Notice_01` | 48 | 256x256 | furniture |
 | `SM_JerryCan_01` | 56 | 256x256 | furniture |
@@ -72,8 +72,32 @@ than a low-poly model with a blurry texture stretched over it.
 | `SM_Poster_01` | 12 | 256x512 | prop |
 | `SM_Clock_Wall_01` | 96 | 512x512 | prop |
 | `SM_Rags_01` | 36 | 256x256 | prop |
+| `SM_CeilingLight_01` | 48 | 256x256 | furniture |
+| `SM_Cartridge_01` | 128 | 128x128 | prop |
+| `SM_Cartridges_Pile_01` | 384 | 128x128 | prop |
+| `SM_AmmoBelt_01` | 836 | 256x256 | prop |
+| `SM_Grenade_01` | 244 | 128x128 | prop |
+| `SM_Rifle_02` | 236 | 512x512 | prop |
+| `SM_SMG_01` | 144 | 256x256 | prop |
+| `SM_Revolver_01` | 144 | 256x256 | prop |
+| `SM_Trash_Pile_01` | 420 | 256x256 | furniture |
+| `SM_Scrap_Pile_01` | 120 | 256x256 | furniture |
+| `SM_Debris_01` | 132 | 256x256 | prop |
+| `SM_Locker_Open_01` | 216 | 1024x1024 | furniture |
+| `SM_Hammer_01` | 68 | 256x256 | prop |
+| `SM_Wrench_01` | 60 | 128x128 | prop |
+| `SM_Pliers_01` | 80 | 128x128 | prop |
+| `SM_Screwdriver_01` | 100 | 128x128 | prop |
+| `SM_ToolBoard_01` | 120 | 256x256 | furniture |
+| `SM_Radio_Valve_01` | 140 | 256x256 | furniture |
+| `SM_Headphones_01` | 316 | 256x256 | prop |
+| `SM_Phone_Field_01` | 136 | 256x512 | prop |
+| `SM_Gauge_Wall_01` | 128 | 256x256 | prop |
+| `SM_Locker_Blue_01` | 48 | 512x1024 | furniture |
+| `SM_Crate_Hazard_01` | 36 | 256x512 | furniture |
+| `SM_Figure_Stalker_01` | 384 | 256x512 | furniture |
 
-46 props, 3328 triangles.
+70 props, 7996 triangles.
 
 ## What makes it look right
 
@@ -81,6 +105,9 @@ A 64x64 texture is not automatically "PSX". Four things do the work, and all of
 them are enforced in code rather than left to taste:
 
 - **Square texels everywhere**, verified by `tools/check_density.py`
+- **Nothing floats, overhangs or interpenetrates** - the scene refuses to build
+  otherwise (`validate`, `check_overlaps`)
+- **No face is marked hidden unless something covers it** (`kit.check_hidden`)
 - **Real one-bit typography** - a real typeface, rendered with antialiasing off
 - **A fixed 32-colour CLUT** shared by every prop in the bundle
 - **15-bit colour** - every channel a multiple of 8, like the PS1 framebuffer

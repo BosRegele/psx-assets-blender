@@ -1087,8 +1087,10 @@ def crate_hazard():
 def figure_stalker():
     """A gaunt figure in a long coat and a respirator.
 
-    Deliberately wrong: too tall, too thin, arms too long, head slightly too
-    small, standing a fraction off vertical. PS1 human meshes were crude enough
+    Deliberately wrong: too tall, narrow across the shoulders, arms too long,
+    head slightly too small, standing a fraction off vertical. Narrow is the
+    unsettling part; flat is just a mistake, and the first version was 150mm
+    front to back, so from the side it read as a cardboard cutout. PS1 human meshes were crude enough
     that a viewer fills in the rest, and the uncanny reading comes from the
     proportions rather than from any detail the budget could not afford.
     """
@@ -1098,26 +1100,28 @@ def figure_stalker():
             rot=(0, 0, -8)),
         Box("bootR", (0.022, -0.050, 0), (0.085, 0.135, 0.085), "rubber",
             rot=(0, 0, 11)),
-        Box("legL", (-0.088, -0.036, 0.085), (0.062, 0.072, 0.420), "coat",
+        Box("legL", (-0.092, -0.048, 0.085), (0.068, 0.096, 0.420), "coat",
             rot=(0, 2, 0)),
-        Box("legR", (0.026, -0.034, 0.085), (0.062, 0.072, 0.420), "coat",
+        Box("legR", (0.028, -0.046, 0.085), (0.068, 0.096, 0.420), "coat",
             rot=(0, -3, 0)),
         # the coat: a long tapered slab, wider at the hem
-        Box("coat_skirt", (-0.135, -0.070, 0.380), (0.270, 0.150, 0.470),
+        Box("coat_skirt", (-0.140, -0.105, 0.380), (0.280, 0.215, 0.470),
             "coat", rot=(0, 1, 0)),
-        Box("coat_body", (-0.120, -0.070, 0.840), (0.240, 0.150, 0.330),
+        Box("coat_body", (-0.128, -0.100, 0.840), (0.256, 0.205, 0.330),
             "coat"),
-        Box("lapel", (-0.075, -0.082, 1.030), (0.150, 0.020, 0.140), "coat",
+        Box("shoulders", (-0.168, -0.098, 1.090), (0.336, 0.200, 0.085),
+            "coat", rot=(0, 0, 2)),
+        Box("lapel", (-0.078, -0.112, 1.020), (0.156, 0.022, 0.150), "coat",
             rot=(0, 0, 3)),
         # arms hang too long, barely bent
-        Box("armL", (-0.168, -0.048, 0.700), (0.070, 0.096, 0.470), "coat",
+        Box("armL", (-0.196, -0.062, 0.690), (0.074, 0.124, 0.480), "coat",
+            rot=(0, 6, 0)),
+        Box("armR", (0.122, -0.062, 0.680), (0.074, 0.124, 0.490), "coat",
+            rot=(0, -8, 0)),
+        Box("handL", (-0.186, -0.042, 0.628), (0.056, 0.078, 0.078), "skin",
             rot=(0, 5, 0)),
-        Box("armR", (0.098, -0.048, 0.690), (0.070, 0.096, 0.480), "coat",
+        Box("handR", (0.128, -0.042, 0.608), (0.056, 0.078, 0.078), "skin",
             rot=(0, -7, 0)),
-        Box("handL", (-0.158, -0.032, 0.640), (0.052, 0.064, 0.075), "skin",
-            rot=(0, 4, 0)),
-        Box("handR", (0.104, -0.032, 0.620), (0.052, 0.064, 0.075), "skin",
-            rot=(0, -6, 0)),
         # neck and head, tilted a few degrees off true
         Cylinder("neck", (0, -0.004, 1.185), 0.036, 0.055, "skin", n=8),
         Sphere("head", (0, -0.010, 1.278), 0.088, "skin", seg=10, ring=7,
