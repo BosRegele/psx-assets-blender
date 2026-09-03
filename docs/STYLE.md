@@ -65,6 +65,42 @@ baked ambient occlusion into the texture because there was no runtime
 shadowing, and it is the single thing that stops a box composite reading as a
 pile of untextured blocks.
 
+## Architecture
+
+Walls, floor and ceiling tile instead of packing an atlas, at **the same texel
+density as the furniture tier**. A 512 tile covers 2.78m. The UV scale in
+`blender_scene.build_room` is computed from the tile's world size, never typed
+in - type it in and the wall silently drifts off the props' pixel size the
+first time the room changes dimensions.
+
+Value noise tiles for free: nearest-upscaled blocks have no continuity to
+break. Drawn features do not, so cracks and stains are drawn nine times at
+tile offsets (`arch.wrapped`).
+
+Wear is a **modulation of the surface, not a shape on top of it**. The first
+pass drew damp as filled triangles and dirt as filled circles, and the result
+was polka dots. `texgen.blotch` thresholds anisotropic noise instead: stretched
+vertically it runs down a wall like water, stretched horizontally it reads as
+traffic polish on a floor.
+
+Concrete is dark on purpose. A light wall bounces so much that three bulbs light
+a room evenly, and the practicals stop reading as sources.
+
+## Rendering
+
+Cycles, GPU. Point-sampled textures survive a physically based renderer fine -
+`Closest` interpolation is what keeps the texels the pipeline exists to place.
+
+Two things learned the hard way:
+
+- **A bulb inside a fixture is a bulb inside a sealed tin.** The lamp's glass
+  is an opaque diffuse texture like everything else in the kit, so the first
+  lit render came out black. The fixture has `visible_shadow = False` rather
+  than a transmissive shader the rest of the kit does not use.
+- **Aim cameras with a look-at vector, not typed Euler angles.** Inside a
+  closed room a hand-written rotation is a guess, and the first frame rendered
+  a wall.
+
 ## Naming
 
 ```

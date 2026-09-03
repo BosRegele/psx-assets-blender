@@ -22,6 +22,18 @@ TIERS = {"prop": 551.0,        # handheld, under ~0.35m
 # by object scale for exactly this reason - the rule is square texels within a
 # prop and a constant density within a tier, not one number for the bundle.
 
+# Architecture tiles rather than packing an atlas, but it must land on the
+# same texel density as the furniture around it. The constants live here, not
+# in arch.py, because Blender's interpreter has no PIL and cannot import that
+# module - and a wall whose density drifts from the props is the whole failure
+# this pipeline exists to prevent.
+ARCH_TILE = 512                       # px; 2.78 m at the furniture density
+
+
+def arch_tile_metres():
+    return ARCH_TILE / TIERS["furniture"]
+
+
 FACES = ("front", "back", "left", "right", "top", "bottom")
 
 # A face marked "hidden" still exists in the mesh - leaving a hole would break

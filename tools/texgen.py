@@ -17,6 +17,42 @@ RNG = np.random.default_rng(0xC0FFEE)
 
 # --- surface helpers -------------------------------------------------------
 
+def value_noise_xy(h, w, cx, cy, seed=None):
+    """Anisotropic value noise: separate block size per axis.
+
+    Stretching blocks vertically is what turns generic mottling into water
+    running down a wall. Isotropic noise can only ever look like dirt.
+    """
+    rng = RNG if seed is None else np.random.default_rng(seed)
+    small = rng.random((max(1, h // cy), max(1, w // cx)))
+    img = Image.fromarray((small * 255).astype(np.uint8)).resize((w, h), Image.NEAREST)
+    return np.asarray(img, dtype=np.float32) / 255.0
+
+
+def fbm_xy(h, w, cx, cy, seed=None, octaves=3):
+    out, amp, total = np.zeros((h, w), np.float32), 1.0, 0.0
+    for i in range(octaves):
+        f = 2 ** i
+        out += value_noise_xy(h, w, max(1, cx // f), max(1, cy // f),
+                              None if seed is None else seed + i) * amp
+        total += amp
+        amp *= 0.5
+    out /= total
+    out -= out.min()
+    return out / max(out.max(), 1e-6)
+
+
+def blotch(h, w, cx, cy, threshold, seed=None, octaves=3):
+    """Irregular organic patches: noise above a threshold, rescaled to 0..1.
+
+    Wear is a modulation of the surface, not a shape stuck on top of it. Drawing
+    stains as filled ellipses gives polka dots; thresholded noise gives edges
+    that wander the way real damp does.
+    """
+    n = fbm_xy(h, w, cx, cy, seed, octaves)
+    return np.clip((n - threshold) / max(1e-6, 1.0 - threshold), 0.0, 1.0)
+
+
 def value_noise(h, w, cells, seed=None):
     """Blocky value noise, upscaled with nearest so it stays pixel-honest.
 

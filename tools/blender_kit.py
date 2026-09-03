@@ -101,4 +101,5 @@ def main(arrange=True, do_export=True):
     return f"{len(names)} props, {total} tris total"
 
 
-print(main())
+if __name__ == "__main__":
+    print(main())

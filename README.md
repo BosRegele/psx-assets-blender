@@ -3,6 +3,11 @@
 Game-ready PS1-era props for Blender, and the tooling that keeps them looking
 like one coherent set.
 
+![bunker](docs/bunker.png)
+
+Rendered in Cycles on the GPU. Everything in frame is from this repo - the
+room included.
+
 ![hero](docs/hero.png)
 
 Post-soviet grime: canned rations, cheap vodka, state-issue cigarettes. Built
@@ -47,9 +52,28 @@ than a low-poly model with a blurry texture stretched over it.
 | `SM_Bucket_01` | 92 | 512x512 | prop |
 | `SM_Lamp_Cage_01` | 144 | 512x512 | prop |
 | `SM_Pipe_Valve_01` | 140 | 256x256 | furniture |
+| `SM_Ashtray_01` | 80 | 256x256 | prop |
+| `SM_BugSpray_01` | 104 | 256x256 | prop |
+| `SM_Jar_Glass_01` | 80 | 256x256 | prop |
+| `SM_Bottle_Beer_01` | 144 | 256x256 | prop |
+| `SM_Mug_Enamel_01` | 52 | 256x256 | prop |
+| `SM_Plate_Tin_01` | 96 | 512x512 | prop |
+| `SM_MessTin_01` | 36 | 256x256 | prop |
+| `SM_Bread_01` | 24 | 256x256 | prop |
+| `SM_Sausage_01` | 56 | 128x128 | prop |
+| `SM_Matchbox_01` | 12 | 128x128 | prop |
+| `SM_Canteen_01` | 76 | 256x256 | prop |
+| `SM_FirstAid_01` | 36 | 256x512 | prop |
+| `SM_Books_01` | 36 | 256x512 | prop |
+| `SM_Papers_01` | 48 | 256x512 | prop |
+| `SM_Kettle_01` | 96 | 512x512 | prop |
+| `SM_Lamp_Oil_01` | 132 | 256x256 | prop |
+| `SM_Toolbox_01` | 36 | 256x512 | prop |
+| `SM_Poster_01` | 12 | 256x512 | prop |
+| `SM_Clock_Wall_01` | 96 | 512x512 | prop |
+| `SM_Rags_01` | 36 | 256x256 | prop |
 
-Exported as `.fbx` (embedded textures) and `.glb`, real-world scale, pivots at
-base centre, +Z up.
+46 props, 3328 triangles.
 
 ## What makes it look right
 
@@ -67,6 +91,25 @@ The first of those does the heavy lifting. A curved surface unwrapped carelessly
 smears texels into slivers, and no amount of palette discipline hides it.
 
 Full rules in [docs/STYLE.md](docs/STYLE.md).
+
+## The scene
+
+`tools/blender_scene.py` builds a dressed 7.4 x 5.4 m room and renders it in
+Cycles. Walls, floor and ceiling **tile** rather than pack an atlas - a 7m wall
+would be an 1100px face - but they tile at exactly the furniture density, so a
+wall behind a locker has the same pixel size as the locker. Getting that wrong
+is what makes props look pasted onto a background.
+
+```bash
+cd tools
+python arch.py              # tileable wall/floor/ceiling
+python -c "import bridge; print(bridge.run(open('blender_scene.py').read()))"
+```
+
+Lighting does most of the work: the textures are unlit diffuse by design, so
+the room only reads as a place once there are practicals in shot. Three caged
+lamps carry it, with a cold sliver from a doorway to sit the warm tungsten
+against.
 
 ## Adding a prop
 

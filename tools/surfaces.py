@@ -60,7 +60,7 @@ def _in(rect, m):
 # --- metals ----------------------------------------------------------------
 @painter("steel")
 def steel(img, rect, seed, density=184.0):
-    d = base(img, rect, "tin", 0.30, 0.70, seed, 0.28, density=density)
+    d = base(img, rect, "tin", 0.36, 0.64, seed, 0.22, density=density)
     T.scratches(img, max(3, rect[2] * rect[3] // 900), T.px("tin", 4),
                 seed=seed + 5, length=max(3, rect[2] // 10),
                 ybox=(rect[1], rect[1] + rect[3]))
@@ -70,7 +70,7 @@ def steel(img, rect, seed, density=184.0):
 
 @painter("steel_worn")
 def steel_worn(img, rect, seed, density=184.0):
-    d = base(img, rect, "tin", 0.20, 0.62, seed, 0.42, density=density)
+    d = base(img, rect, "tin", 0.34, 0.58, seed, 0.26, density=density)
     x, y, w, h = rect
     rng = np.random.default_rng(seed + 11)
     # Rust is a stain, not a rash. Few blooms, each built from several small
@@ -299,6 +299,85 @@ def glass_lens(img, rect, seed, density=184.0):
 @painter("dark")
 def dark(img, rect, seed, density=184.0):
     return base(img, rect, "void", 0.0, 0.9, seed, 0.10, density=density)
+
+
+@painter("enamel")
+def enamel(img, rect, seed, density=184.0):
+    """Chipped enamelware: pale blue-white with dark chips at the edges."""
+    d = base(img, rect, "concrete", 0.62, 0.98, seed, 0.16, density=density)
+    x, y, w, h = rect
+    rng = np.random.default_rng(seed + 51)
+    for _ in range(max(1, w * h // 5200)):
+        cx, cy = int(rng.integers(x, x + w)), int(rng.integers(y, y + h))
+        r = max(1, int(rng.integers(1, max(2, min(w, h) // 22))))
+        d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=T.px("void", 1))
+    edge_shade(d, rect, "concrete")
+    return d
+
+
+@painter("cardboard")
+def cardboard(img, rect, seed, density=184.0):
+    d = base(img, rect, "paper", 0.34, 0.66, seed, 0.30, density=density)
+    edge_shade(d, rect, "paper")
+    return d
+
+
+@painter("label_red")
+def label_red(img, rect, seed, density=184.0):
+    """Printed consumer label: a red field with a stencilled word."""
+    d = base(img, rect, "paper", 0.62, 0.94, seed, 0.18, density=density)
+    x, y, w, h = rect
+    d.rectangle([x, y + h // 5, x + w - 1, y + h // 2], fill=T.px("red", 2))
+    if w > 22 and h > 16:
+        f = T.fit("heavy", "ДИХЛО", int(w * 0.72), max(4, h // 5))
+        T.text(d, (x + w // 2, y + h // 5 + 1), "ДИХЛО", f, T.px("paper", 4),
+               centre=True, track=1)
+        T.smallprint(d, (x + w // 6, y + int(h * 0.60), x + 5 * w // 6,
+                         y + int(h * 0.85)), T.px("void", 1), seed=seed, gap=3)
+    edge_shade(d, rect, "paper")
+    return d
+
+
+@painter("bread")
+def bread(img, rect, seed, density=184.0):
+    d = base(img, rect, "wood", 0.45, 0.92, seed, 0.22, density=density)
+    x, y, w, h = rect
+    rng = np.random.default_rng(seed + 61)
+    for _ in range(max(2, w * h // 700)):      # crumb pitting
+        cx, cy = int(rng.integers(x, x + w)), int(rng.integers(y, y + h))
+        d.point((cx, cy), fill=T.px("wood", 1))
+    edge_shade(d, rect, "wood")
+    return d
+
+
+@painter("meat")
+def meat(img, rect, seed, density=184.0):
+    d = base(img, rect, "rust", 0.30, 0.85, seed, 0.25, density=density)
+    edge_shade(d, rect, "rust")
+    return d
+
+
+@painter("ash")
+def ash(img, rect, seed, density=184.0):
+    """Ashtray interior: grey ash with butt ends."""
+    d = base(img, rect, "concrete", 0.20, 0.55, seed, 0.30, density=density)
+    x, y, w, h = rect
+    rng = np.random.default_rng(seed + 71)
+    for _ in range(max(3, w * h // 500)):
+        cx, cy = int(rng.integers(x, x + w)), int(rng.integers(y, y + h))
+        ln = max(2, int(rng.integers(2, max(3, w // 6))))
+        d.line([(cx, cy), (cx + ln, cy + int(rng.integers(-1, 2)))],
+               fill=T.px("paper", 3))
+        d.point((cx, cy), fill=T.px("rust", 1))
+    edge_shade(d, rect, "concrete")
+    return d
+
+
+@painter("chrome")
+def chrome(img, rect, seed, density=184.0):
+    d = base(img, rect, "tin", 0.55, 0.95, seed, 0.12, density=density)
+    edge_shade(d, rect, "tin")
+    return d
 
 
 @painter("hidden")

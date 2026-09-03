@@ -225,10 +225,17 @@ def pack():
 
 BUILDERS = {"can": can, "bottle": bottle, "pack": pack}
 
+# The three consumables predate the SM_ naming rule in docs/STYLE.md. Write
+# them under the documented names so the scene, the exporter and the bundle all
+# address a prop by one identifier.
+ASSET_NAMES = {"can": "SM_Can_Food_01",
+               "bottle": "SM_Bottle_Vodka_01",
+               "pack": "SM_Pack_Cigarettes_01"}
+
 if __name__ == "__main__":
     import os
     os.makedirs("../assets/textures", exist_ok=True)
     for name, fn in BUILDERS.items():
-        p = f"../assets/textures/{name}_d.png"
+        p = f"../assets/textures/{ASSET_NAMES[name]}_d.png"
         palette.save(fn(), p, strength=20.0)
         print("wrote", p)

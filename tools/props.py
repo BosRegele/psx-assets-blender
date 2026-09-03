@@ -396,3 +396,220 @@ REGISTRY = {
     "SM_Lamp_Cage_01": lamp_cage,
     "SM_Pipe_Valve_01": pipe_valve,
 }
+
+
+# --- clutter: the layer that makes a room look lived in --------------------
+# These are what sell a bunker. Furniture says "a room exists"; a half-used
+# tin of roach powder next to an overflowing ashtray says someone lives here.
+
+
+def ashtray():
+    """Glass ashtray with a bed of ash and butts."""
+    return "prop", [
+        Cylinder("body", (0, 0, 0), 0.070, 0.028, "glass_lens", n=10),
+        Cylinder("bowl", (0, 0, 0.020), 0.055, 0.010, "ash", n=10),
+    ]
+
+
+def bug_spray():
+    """Aerosol tin of roach powder."""
+    return "prop", [
+        Cylinder("body", (0, 0, 0), 0.032, 0.150,
+                 {"side": "label_red", "top": "chrome", "bottom": "chrome"}, n=10),
+        Cylinder("neck", (0, 0, 0.150), 0.016, 0.014, "chrome", n=8),
+        Cylinder("cap", (0, 0, 0.164), 0.022, 0.026, "rubber", n=8),
+    ]
+
+
+def glass_jar():
+    """Preserve jar with a screw lid."""
+    return "prop", [
+        Cylinder("body", (0, 0, 0), 0.045, 0.115, "glass_lens", n=10),
+        Cylinder("lid", (0, 0, 0.115), 0.047, 0.014, "olive_metal", n=10),
+    ]
+
+
+def beer_bottle():
+    """Stubby brown bottle."""
+    return "prop", [
+        Cylinder("body", (0, 0, 0), 0.033, 0.145, "wood", n=10),
+        Cylinder("label", (0, 0, 0.045), 0.034, 0.055, "label_red", n=10),
+        Cylinder("neck", (0, 0, 0.145), 0.014, 0.070, "wood", n=8),
+        Cylinder("cap", (0, 0, 0.215), 0.016, 0.010, "chrome", n=8),
+    ]
+
+
+def enamel_mug():
+    """Chipped enamel mug."""
+    return "prop", [
+        Cylinder("body", (0, 0, 0), 0.042, 0.090, "enamel", n=10),
+        Box("handle", (0.042, -0.008, 0.030), (0.028, 0.016, 0.040), "enamel"),
+    ]
+
+
+def tin_plate():
+    return "prop", [
+        Cylinder("base", (0, 0, 0), 0.105, 0.010, "enamel", n=12),
+        Cylinder("rim", (0, 0, 0.010), 0.115, 0.008, "enamel", n=12),
+    ]
+
+
+def mess_tin():
+    """Aluminium mess tin with a folded handle."""
+    W, D, H = 0.16, 0.10, 0.07
+    return "prop", [
+        Box("body", (-W / 2, -D / 2, 0), (W, D, H), "chrome"),
+        Box("lid", (-W / 2 - 0.004, -D / 2 - 0.004, H), (W + 0.008, D + 0.008, 0.012), "chrome"),
+        Box("handle", (-W / 2 - 0.02, -0.012, 0.02), (0.02, 0.024, 0.03), "chrome"),
+    ]
+
+
+def bread_loaf():
+    """Dark rye brick."""
+    W, D, H = 0.22, 0.11, 0.09
+    return "prop", [
+        Box("body", (-W / 2, -D / 2, 0), (W, D, H - 0.02), "bread"),
+        Box("crown", (-W / 2 + 0.012, -D / 2 + 0.008, H - 0.02),
+            (W - 0.024, D - 0.016, 0.02), "bread"),
+    ]
+
+
+def sausage():
+    return "prop", [
+        Cylinder("body", (0, 0, 0), 0.026, 0.180, "meat", n=8),
+        Cylinder("tie", (0, 0, 0.180), 0.010, 0.014, "paper", n=6),
+    ]
+
+
+def matchbox():
+    W, D, H = 0.055, 0.036, 0.016
+    return "prop", [
+        Box("body", (-W / 2, -D / 2, 0), (W, D, H),
+            {"front": "label_red", "back": "cardboard", "left": "cardboard",
+             "right": "cardboard", "top": "label_red", "bottom": "cardboard"}),
+    ]
+
+
+def canteen():
+    """Felt-covered water bottle."""
+    W, D, H = 0.10, 0.055, 0.20
+    return "prop", [
+        Box("body", (-W / 2, -D / 2, 0), (W, D, H - 0.03), "canvas"),
+        Cylinder("neck", (0, 0, H - 0.03), 0.016, 0.022, "olive_metal", n=8),
+        Cylinder("cap", (0, 0, H - 0.008), 0.019, 0.014, "rubber", n=8),
+    ]
+
+
+def first_aid():
+    """Field medical box."""
+    W, D, H = 0.24, 0.14, 0.13
+    return "prop", [
+        Box("body", (-W / 2, -D / 2, 0), (W, D, H - 0.02),
+            {"front": "label_red", "back": "olive_metal", "left": "olive_metal",
+             "right": "olive_metal", "top": "olive_metal", "bottom": "hidden"}),
+        Box("lid", (-W / 2 - 0.005, -D / 2 - 0.005, H - 0.02),
+            (W + 0.01, D + 0.01, 0.02), "olive_metal"),
+        Box("clasp", (-0.02, -D / 2 - 0.008, H - 0.06), (0.04, 0.01, 0.04), "chrome"),
+    ]
+
+
+def book_stack():
+    """Three tired hardbacks."""
+    p, z = [], 0.0
+    for i, (w, d, h) in enumerate(((0.17, 0.12, 0.030),
+                                   (0.15, 0.11, 0.026),
+                                   (0.16, 0.115, 0.022))):
+        p.append(Box(f"book{i}", (-w / 2 + i * 0.008, -d / 2, z), (w, d, h),
+                     {"front": "paper", "back": "label_red", "left": "label_red",
+                      "right": "paper", "top": "label_red", "bottom": "paper"}))
+        z += h
+    return "prop", p
+
+
+def paper_stack():
+    p, z = [], 0.0
+    for i in range(4):
+        p.append(Box(f"sheet{i}", (-0.105 + i * 0.004, -0.075, z),
+                     (0.21, 0.15, 0.004), "paper"))
+        z += 0.004
+    return "prop", p
+
+
+def kettle():
+    """Sooty stovetop kettle."""
+    return "prop", [
+        Cylinder("body", (0, 0, 0), 0.075, 0.115, "steel_worn", n=10),
+        Cylinder("lid", (0, 0, 0.115), 0.048, 0.016, "steel", n=8),
+        Box("spout", (0.070, -0.012, 0.060), (0.055, 0.024, 0.028), "steel_worn"),
+        Box("handle", (-0.020, -0.010, 0.131), (0.040, 0.020, 0.040), "rubber"),
+    ]
+
+
+def oil_lamp():
+    """Kerosene hurricane lamp."""
+    return "prop", [
+        Cylinder("reservoir", (0, 0, 0), 0.048, 0.055, "chrome", n=10),
+        Cylinder("glass", (0, 0, 0.055), 0.036, 0.090, "glass_lens", n=10),
+        Cylinder("cowl", (0, 0, 0.145), 0.042, 0.020, "steel_worn", n=10),
+        Box("bail", (-0.040, -0.005, 0.165), (0.080, 0.010, 0.030), "steel"),
+    ]
+
+
+def toolbox():
+    W, D, H = 0.36, 0.16, 0.14
+    return "prop", [
+        Box("body", (-W / 2, -D / 2, 0), (W, D, H), "steel_worn"),
+        Box("handle", (-0.06, -0.012, H), (0.12, 0.024, 0.022), "steel"),
+        Box("latch", (-0.03, -D / 2 - 0.006, H - 0.05), (0.06, 0.008, 0.03), "chrome"),
+    ]
+
+
+def poster_wall():
+    """Propaganda sheet, pinned flat."""
+    W, H, T = 0.42, 0.60, 0.004
+    return "prop", [
+        Box("sheet", (-W / 2, 0, 0), (W, T, H),
+            {"front": "label_red", "back": "hidden", "left": "hidden",
+             "right": "hidden", "top": "hidden", "bottom": "hidden"}),
+    ]
+
+
+def wall_clock():
+    return "prop", [
+        Cylinder("case", (0, 0, 0), 0.11, 0.045, "rubber", n=12),
+        Cylinder("face", (0, 0, 0.045), 0.095, 0.006, "enamel", n=12),
+    ]
+
+
+def rag_pile():
+    """Heap of oily rags."""
+    p = []
+    for i, (x, y, w, d, h) in enumerate(((-0.06, -0.04, 0.16, 0.12, 0.035),
+                                         (-0.02, -0.07, 0.13, 0.14, 0.030),
+                                         (-0.05, -0.02, 0.11, 0.09, 0.028))):
+        p.append(Box(f"rag{i}", (x, y, i * 0.022), (w, d, h), "fabric"))
+    return "prop", p
+
+
+REGISTRY.update({
+    "SM_Ashtray_01": ashtray,
+    "SM_BugSpray_01": bug_spray,
+    "SM_Jar_Glass_01": glass_jar,
+    "SM_Bottle_Beer_01": beer_bottle,
+    "SM_Mug_Enamel_01": enamel_mug,
+    "SM_Plate_Tin_01": tin_plate,
+    "SM_MessTin_01": mess_tin,
+    "SM_Bread_01": bread_loaf,
+    "SM_Sausage_01": sausage,
+    "SM_Matchbox_01": matchbox,
+    "SM_Canteen_01": canteen,
+    "SM_FirstAid_01": first_aid,
+    "SM_Books_01": book_stack,
+    "SM_Papers_01": paper_stack,
+    "SM_Kettle_01": kettle,
+    "SM_Lamp_Oil_01": oil_lamp,
+    "SM_Toolbox_01": toolbox,
+    "SM_Poster_01": poster_wall,
+    "SM_Clock_Wall_01": wall_clock,
+    "SM_Rags_01": rag_pile,
+})

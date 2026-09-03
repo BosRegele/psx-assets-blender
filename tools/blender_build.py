@@ -201,13 +201,13 @@ def export(ob, stem):
 def main():
     clear()
     os.makedirs(OUT, exist_ok=True)
-    jobs = [(build_can, "can", "SM_Can_Food_01", -0.14),
-            (build_bottle, "bottle", "SM_Bottle_Vodka_01", 0.0),
-            (build_pack, "pack", "SM_Pack_Cigarettes_01", 0.14)]
+    jobs = [(build_can, "SM_Can_Food_01", -0.14),
+            (build_bottle, "SM_Bottle_Vodka_01", 0.0),
+            (build_pack, "SM_Pack_Cigarettes_01", 0.14)]
     report = []
-    for fn, tex, stem, xoff in jobs:
+    for fn, stem, xoff in jobs:
         ob = fn()
-        material(ob, f"{TEX}/{tex}_d.png", f"MI_{stem}")
+        material(ob, f"{TEX}/{stem}_d.png", f"MI_{stem}")
         ob.location.x = xoff
         tris = sum(len(p.vertices) - 2 for p in ob.data.polygons)
         export(ob, stem)
@@ -215,4 +215,5 @@ def main():
     return "\n".join(report)
 
 
-print(main())
+if __name__ == "__main__":
+    print(main())
