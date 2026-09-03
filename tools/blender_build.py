@@ -137,19 +137,33 @@ def build_bottle(N=12):
             uvs.append([(i / N * s0, v0), ((i + 1) / N * s0, v0),
                         ((i + 1) / N * s1, v1), (i / N * s1, v1)])
 
-    s_top, s_bot = us(rings[0][0]), us(rings[-1][0])
+    # Poles map to real discs in the unused lower half of the atlas. Fanning
+    # them to a single texture row leaves a flat untextured cap, which is what
+    # made the foil read as moulded plastic.
+    tw, tht = P.BOTTLE_TEX
+
+    def disc(spec):
+        cx, cy, r = spec
+        return cx / tw, 1.0 - cy / tht, r / tw, r / tht
+
+    cu, cv, cru, crv = disc(P.BOTTLE_CAP_DISC)
     for i in range(N):
         j = (i + 1) % N
+        ai, aj = TAU * i / N, TAU * j / N
         faces.append((top, i, j))
-        uvs.append([(s_top / 2, v(rows[0])), (i / N * s_top, v(ring_rows[0])),
-                    ((i + 1) / N * s_top, v(ring_rows[0]))])
+        uvs.append([(cu, cv),
+                    (cu + cru * math.cos(ai), cv + crv * math.sin(ai)),
+                    (cu + cru * math.cos(aj), cv + crv * math.sin(aj))])
+
+    bu, bv, bru, brv = disc(P.BOTTLE_BASE_DISC)
     base = (len(rings) - 1) * N
     for i in range(N):
         j = (i + 1) % N
+        ai, aj = TAU * i / N, TAU * j / N
         faces.append((bot, base + j, base + i))
-        uvs.append([(s_bot / 2, v(rows[-1])),
-                    ((i + 1) / N * s_bot, v(ring_rows[-1])),
-                    (i / N * s_bot, v(ring_rows[-1]))])
+        uvs.append([(bu, bv),
+                    (bu + bru * math.cos(aj), bv + brv * math.sin(aj)),
+                    (bu + bru * math.cos(ai), bv + brv * math.sin(ai))])
     return make("SM_Bottle_Vodka_01", verts, faces, uvs)
 
 

@@ -80,10 +80,25 @@ def bottle():
     cx = int(w * FRONT)
     brand, sub, lines = BRANDS["vodka"]
 
-    base = 0.22 + 0.62 * T.fbm(h, w, seed=30, octaves=(16, 8, 4, 2))
-    base = np.clip(base + 0.28 * T.streaks(h, w, 30, seed=37, width=(1, 7)), 0, 1)
+    # Clear glass is mostly bright; thickness darkens it rather than tinting it.
+    base = 0.56 + 0.32 * T.fbm(h, w, seed=30, octaves=(7, 4, 2))
+    # Mould lines run down the straight sections only. Across the shoulder the
+    # U scale is changing ring to ring, so any vertical feature there gets
+    # sheared into a diagonal swirl - that was the smearing on the shoulder.
+    runs = T.streaks(h, w, 18, seed=37, width=(1, 4))
+    for y0, y1 in P.taper_spans():
+        runs[y0:y1] = 0.0
+    base = np.clip(base - 0.22 * runs, 0, 1)
+    # Wherever the radius changes, the quad is a trapezoid in UV and any
+    # horizontal variation gets sheared into a swirl. Flatten those spans to
+    # their row mean: a rotationally symmetric band has nothing to shear, and
+    # it reads as smooth blown glass, which is what a shoulder actually is.
+    # The spans come from the profile, not from a hand-named band - the first
+    # attempt at this missed the 0.31 -> 0.62 jump because it sat inside "neck".
+    for y0, y1 in P.taper_spans():
+        base[y0:y1] = base[y0:y1].mean(axis=1, keepdims=True)
     rgb = T.grime(T.from_ramp(base, "glass"),
-                  T.fbm(h, w, seed=31, octaves=(32, 16, 8, 4)), 0.35)
+                  T.fbm(h, w, seed=31, octaves=(10, 5, 3)), 0.20)
     lab = T.from_ramp(0.66 + 0.24 * T.fbm(h, w, seed=32, octaves=(9, 5, 3)), "paper")
     lab = T.grime(lab, T.fbm(h, w, seed=33, octaves=(14, 7, 3)), 0.22)
     mask = np.zeros((h, w), dtype=bool)
@@ -98,10 +113,14 @@ def bottle():
         d.line([(x, cap[0] + 1), (x, cap[1] - 5)], fill=T.px("red", 1))
     d.rectangle([0, cap[1] - 5, w - 1, cap[1] - 1], fill=T.px("red", 0))
 
-    for y0, y1 in (neck, shoulder, lower):
-        for x in range(26, 40):
+    # A vertical column only survives on a cylindrical section. Painting one
+    # across a taper is what smears it round the shoulder.
+    for y0, y1 in P.straight_spans():
+        if y1 - y0 < 12 or y0 >= label[0] and y1 <= label[1]:
+            continue
+        for x in range(28, 38):
             d.line([(x, y0), (x, y1 - 1)], fill=T.px("glass", 3))
-        d.line([(32, y0), (32, y1 - 1)], fill=T.px("concrete", 1))
+        d.line([(33, y0), (33, y1 - 1)], fill=T.px("void", 1))
 
     lh = label[1] - label[0]
     L = lambda f: label[0] + int(lh * f)
@@ -123,9 +142,26 @@ def bottle():
         T.text(d, (cx, ly), line, f, T.px("void", 1), centre=True, track=1)
         ly += f.size + 3
 
-    for i, bandbox in enumerate((neck, shoulder, lower)):
-        T.scratches(img, 70, T.px("glass", 3), seed=36 + i, length=10, ybox=bandbox)
+    for i, (y0, y1) in enumerate(P.straight_spans()):
+        if y1 - y0 < 12 or (y0 >= label[0] and y1 <= label[1]):
+            continue
+        T.scratches(img, 22, T.px("glass", 3), seed=36 + i, length=5, ybox=(y0, y1))
     T.scratches(img, 30, T.px("paper", 4), seed=39, length=6, ybox=label)
+
+    # --- pole discs -------------------------------------------------------
+    ccx, ccy, cr = P.BOTTLE_CAP_DISC
+    d.ellipse([ccx - cr, ccy - cr, ccx + cr, ccy + cr], fill=T.px("red", 2))
+    for rr in range(cr - 2, 1, -3):
+        d.ellipse([ccx - rr, ccy - rr, ccx + rr, ccy + rr], outline=T.px("red", 1))
+    d.ellipse([ccx - cr // 3, ccy - cr // 3, ccx + cr // 3, ccy + cr // 3],
+              fill=T.px("red", 3))
+
+    bcx, bcy, br = P.BOTTLE_BASE_DISC
+    d.ellipse([bcx - br, bcy - br, bcx + br, bcy + br], fill=T.px("glass", 1))
+    for rr in range(br - 3, 2, -6):          # punt rings
+        d.ellipse([bcx - rr, bcy - rr, bcx + rr, bcy + rr], outline=T.px("glass", 0))
+    d.ellipse([bcx - br // 3, bcy - br // 3, bcx + br // 3, bcy + br // 3],
+              fill=T.px("glass", 0))
     return np.asarray(img, dtype=np.float32)
 
 

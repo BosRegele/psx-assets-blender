@@ -49,6 +49,41 @@ BOTTLE_ROWS = arc_rows(BOTTLE_PROFILE, BOTTLE_DENSITY)
 BOTTLE_BANDS = {"cap": (0, 3), "neck": (3, 5), "shoulder": (5, 8),
                 "label": (8, 9), "lower": (9, 12)}
 
+# The profile only reaches row ~356 of 512, so the poles get real discs in the
+# space below it. Mapping a fan to a single row leaves the cap top a flat
+# untextured disc, which is what made it read as plastic.
+_cap_r = int(round(BOTTLE_PROFILE[1][0] * BOTTLE_DENSITY))
+_base_r = int(round(BOTTLE_PROFILE[-2][0] * BOTTLE_DENSITY))
+BOTTLE_CAP_DISC = (_cap_r + 6, int(round(BOTTLE_ROWS[-1])) + _cap_r + 12, _cap_r)
+BOTTLE_BASE_DISC = (2 * _cap_r + _base_r + 18,
+                    int(round(BOTTLE_ROWS[-1])) + _base_r + 14, _base_r)
+
+
+def taper_spans(profile=None, rows=None, tol=1e-6):
+    """Row ranges where the radius changes, i.e. where U scale differs between
+    the two rings of a quad. Those quads are trapezoids in UV space, so any
+    texture detail there gets sheared into a swirl. Painted content must be
+    constant around the circumference across these spans.
+    """
+    profile = profile or BOTTLE_PROFILE
+    rows = rows or BOTTLE_ROWS
+    out = []
+    for i in range(len(profile) - 1):
+        r0, r1 = profile[i][0], profile[i + 1][0]
+        if r0 > tol and r1 > tol and abs(r1 - r0) > tol:
+            out.append((int(rows[i]), int(round(rows[i + 1]))))
+    return out
+
+
+def straight_spans(profile=None, rows=None, tol=1e-6):
+    """Row ranges of constant radius - the cylindrical sections, where
+    directional detail such as a specular column is safe to paint."""
+    profile = profile or BOTTLE_PROFILE
+    rows = rows or BOTTLE_ROWS
+    return [(int(rows[i]), int(round(rows[i + 1])))
+            for i in range(len(profile) - 1)
+            if profile[i][0] > tol and abs(profile[i + 1][0] - profile[i][0]) <= tol]
+
 
 def band(name, rows=None):
     """Atlas row span (top, bottom) for a named bottle band."""

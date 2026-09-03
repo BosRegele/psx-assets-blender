@@ -66,7 +66,12 @@ import time.
 5. Scuffs stay inside their own atlas band (`scratches(..., ybox=...)`). Glass
    flecks bleeding onto a paper label is exactly the sort of detail that reads
    as sloppy at close range.
-4. One vertical specular column is what makes unlit glass read as glass.
+4. One vertical specular column is what makes unlit glass read as glass - but
+   only on a cylindrical section, never across a taper.
+
+7. Clear glass is not tinted glass. Vodka ships in flint glass: the ramp runs
+   from a shadowed teal-grey to near-white, and thickness reads as darkening
+   rather than colour. Green is for beer and wine.
 
 ## Texel density: the rule that matters most
 
@@ -85,8 +90,31 @@ The fix is a single contract in `tools/geometry.py`:
 - The atlas rectangles are then **computed from the geometry**, not placed by
   hand. `textures.py` paints into whatever rows `geometry.py` derives.
 
-The price is slight shear across the two shoulder rings, where the surface is
-genuinely converging. An extra ring there softens it.
+### The price: shear on tapers
+
+Where the radius changes ring to ring, the U scale changes with it, so the quad
+is a trapezoid in UV space. Any texture detail with horizontal variation there
+gets sheared into a diagonal swirl. This is not a bug to fix - it is what
+uniform density costs on a converging surface.
+
+The rule is to **paint nothing directional across a taper**:
+
+- `geometry.taper_spans()` returns the row ranges where the radius changes.
+  Content there is flattened to its row mean, so the band is constant around
+  the circumference. A rotationally symmetric band has nothing to shear, and it
+  reads as smooth blown glass, which is what a shoulder actually is.
+- `geometry.straight_spans()` returns the cylindrical sections. Vertical
+  features - mould lines, specular columns - go only there.
+
+Both are derived from the profile, never from a hand-named band. The first
+attempt hand-picked the "shoulder" band and still smeared, because the largest
+jump (U scale 0.31 to 0.62) sat inside the band named "neck".
+
+### Poles need real discs
+
+A pole fan mapped to a single texture row gives a flat, untextured cap. The
+bottle's cap top and base get their own discs in the unused lower half of the
+atlas (`BOTTLE_CAP_DISC`, `BOTTLE_BASE_DISC`), sized at their true texel radius.
 
 Run the audit before shipping anything:
 
