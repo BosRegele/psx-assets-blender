@@ -20,7 +20,7 @@ def locker_steel():
     W, D, H = 0.80, 0.50, 1.85
     p = [Box("body", (-W / 2, -D / 2, 0.08), (W, D, H - 0.08),
              {"front": "steel_worn", "back": "steel", "left": "steel_panel",
-              "right": "steel_panel", "top": "steel", "bottom": "hidden"}),
+              "right": "steel_panel", "top": "steel", "bottom": "unseen"}),
          Box("plinth", (-W / 2, -D / 2, 0), (W, D, 0.08), "steel_worn")]
     # Doors stand 45mm proud with a 20mm reveal between them. Flush panels on a
     # flat face are invisible without shadowing; the gap is what reads.
@@ -163,14 +163,16 @@ def stool_metal():
 def couch_worn():
     """Sagging three-seat couch."""
     W, D, H = 1.90, 0.86, 0.78
+    # The base top shows between the cushions and in front of the backrest,
+    # and the rear shows whenever the couch is not flat against a wall.
     p = [Box("base", (-W / 2, -D / 2, 0.10), (W, D, 0.28),
-             {"front": "fabric", "back": "hidden", "left": "fabric",
-              "right": "fabric", "top": "hidden", "bottom": "hidden"}),
+             {"front": "fabric", "back": "fabric", "left": "fabric",
+              "right": "fabric", "top": "fabric", "bottom": "unseen"}),
          Box("plinth", (-W / 2 + 0.05, -D / 2 + 0.05, 0),
              (W - 0.10, D - 0.10, 0.10), "wood"),
          Box("back", (-W / 2, D / 2 - 0.20, 0.38), (W, 0.20, H - 0.30),
              {"front": "fabric_seam", "back": "fabric", "left": "fabric",
-              "right": "fabric", "top": "fabric", "bottom": "hidden"})]
+              "right": "fabric", "top": "fabric", "bottom": "unseen"})]
     # Cushions stand 60mm proud of the base with a gap between them; flush
     # cushions read as one slab.
     seat_w = (W - 0.40) / 3
@@ -178,9 +180,9 @@ def couch_worn():
         p.append(Box(f"cushion{i}", (-W / 2 + 0.20 + i * seat_w + 0.012,
                                      -D / 2 + 0.08, 0.38),
                      (seat_w - 0.024, D - 0.30, 0.13),
-                     {"front": "fabric_seam", "back": "hidden",
+                     {"front": "fabric_seam", "back": "fabric",
                       "left": "fabric", "right": "fabric",
-                      "top": "fabric_seam", "bottom": "hidden"}))
+                      "top": "fabric_seam", "bottom": "unseen"}))
     for i, sx in enumerate((-1, 1)):
         p.append(Box(f"arm{i}", (sx * (W / 2 - 0.20) - 0.10, -D / 2, 0.38),
                      (0.20, D, 0.30), "fabric_seam"))
@@ -196,11 +198,11 @@ def bunk_bed():
                                   sy * (D / 2 - 0.04) - 0.03, 0),
                      (0.06, 0.06, H), "steel_panel"))
     for i, z in enumerate((0.42, 1.14)):
-        p.append(Box(f"frame{i}", (-W / 2, -D / 2, z), (W, D, 0.06), {"front": "steel_worn", "back": "steel_worn", "left": "steel_worn", "right": "steel_worn", "top": "hidden", "bottom": "steel"}))
+        p.append(Box(f"frame{i}", (-W / 2, -D / 2, z), (W, D, 0.06), {"front": "steel_worn", "back": "steel_worn", "left": "steel_worn", "right": "steel_worn", "top": "steel_worn", "bottom": "steel"}))
         p.append(Box(f"mattress{i}", (-W / 2 + 0.03, -D / 2 + 0.04, z + 0.06),
                      (W - 0.06, D - 0.08, 0.10),
                      {"front": "canvas", "back": "canvas", "left": "canvas",
-                      "right": "canvas", "top": "canvas", "bottom": "hidden"}))
+                      "right": "canvas", "top": "canvas", "bottom": "unseen"}))
     return "furniture", p
 
 
@@ -508,7 +510,7 @@ def first_aid():
     return "prop", [
         Box("body", (-W / 2, -D / 2, 0), (W, D, H - 0.02),
             {"front": "label_red", "back": "olive_metal", "left": "olive_metal",
-             "right": "olive_metal", "top": "olive_metal", "bottom": "hidden"}),
+             "right": "olive_metal", "top": "olive_metal", "bottom": "unseen"}),
         Box("lid", (-W / 2 - 0.005, -D / 2 - 0.005, H - 0.02),
             (W + 0.01, D + 0.01, 0.02), "olive_metal"),
         Box("clasp", (-0.02, -D / 2 - 0.008, H - 0.06), (0.04, 0.01, 0.04), "chrome"),
@@ -571,8 +573,9 @@ def poster_wall():
     W, H, T = 0.42, 0.60, 0.004
     return "prop", [
         Box("sheet", (-W / 2, 0, 0), (W, T, H),
-            {"front": "label_red", "back": "hidden", "left": "hidden",
-             "right": "hidden", "top": "hidden", "bottom": "hidden"}),
+            # a poster is pinned flat; only its face is ever on screen
+            {"front": "label_red", "back": "unseen", "left": "unseen",
+             "right": "unseen", "top": "unseen", "bottom": "unseen"}),
     ]
 
 
@@ -634,7 +637,7 @@ def ceiling_light():
     return "furniture", [
         Box("housing", (-W / 2, -D / 2, 0), (W, D, H),
             {"front": "steel_worn", "back": "steel_worn", "left": "steel",
-             "right": "steel", "top": "hidden", "bottom": "steel_worn"}),
+             "right": "steel", "top": "unseen", "bottom": "steel_worn"}),
         Box("diffuser", (-W / 2 + 0.03, -D / 2 + 0.025, -0.018),
             (W - 0.06, D - 0.05, 0.020), "emitter"),
         Box("bracketL", (-W / 2 + 0.06, -0.018, H), (0.03, 0.036, 0.05), "steel"),
@@ -829,7 +832,7 @@ def locker_open():
         Box("plinth", (-W / 2, -D / 2, 0), (W, D, 0.08), "steel_worn"),
         Box("back", (-W / 2, D / 2 - t, 0.08), (W, t, H - 0.08),
             {"front": "steel_worn", "back": "steel", "left": "steel",
-             "right": "steel", "top": "steel", "bottom": "hidden"}),
+             "right": "steel", "top": "steel", "bottom": "unseen"}),
         Box("sideL", (-W / 2, -D / 2, 0.08), (t, D, H - 0.08), "steel_panel"),
         Box("sideR", (W / 2 - t, -D / 2, 0.08), (t, D, H - 0.08), "steel_panel"),
         Box("divider", (-t / 2, -D / 2 + t, 0.08), (t, D - t, H - 0.08), "steel"),
@@ -877,4 +880,274 @@ REGISTRY.update({
     "SM_Scrap_Pile_01": scrap_pile,
     "SM_Debris_01": debris_small,
     "SM_Locker_Open_01": locker_open,
+})
+
+
+# --- things that look like things ------------------------------------------
+# A prop earns its place by being recognisable in silhouette before the texture
+# loads. Each of these is built around the one shape that identifies it: a
+# hammer is a heavy head on a thin handle, a valve radio is a wooden case with
+# a lit scale, headphones are two cups on an arc.
+
+
+def hammer():
+    """Head at the top of the handle, not the middle of it. Cylinder pos is
+    the base unless centre=True, and treating it as a centre put the head
+    halfway down the shaft."""
+    L = 0.300
+    return "prop", [
+        Cylinder("handle", (0, 0, 0), 0.011, L, "wood", n=8, r2=0.015),
+        Box("head", (-0.026, -0.019, L - 0.010), (0.052, 0.038, 0.038),
+            "gunmetal"),
+        Box("peen", (0.026, -0.013, L - 0.004), (0.040, 0.026, 0.026),
+            "gunmetal"),
+        Box("claw", (-0.062, -0.014, L - 0.006), (0.038, 0.028, 0.028),
+            "gunmetal", rot=(0, -22, 0)),
+    ]
+
+
+def wrench():
+    """Open-ended spanner: the jaw is what makes it read."""
+    return "prop", [
+        Box("shaft", (-0.100, -0.011, 0), (0.200, 0.022, 0.008), "chrome"),
+        Box("head_a", (-0.128, -0.019, 0), (0.036, 0.038, 0.009), "chrome",
+            rot=(0, 0, 16)),
+        Box("jaw_a", (-0.128, -0.006, 0.0005), (0.022, 0.012, 0.010), "dark",
+            rot=(0, 0, 16)),
+        Box("head_b", (0.092, -0.017, 0), (0.032, 0.034, 0.009), "chrome",
+            rot=(0, 0, -16)),
+        Box("jaw_b", (0.104, -0.005, 0.0005), (0.020, 0.010, 0.010), "dark",
+            rot=(0, 0, -16)),
+    ]
+
+
+def pliers():
+    return "prop", [
+        Box("jawL", (0.030, -0.008, 0.004), (0.070, 0.008, 0.010), "chrome",
+            rot=(0, 0, 5)),
+        Box("jawR", (0.030, 0.000, 0.004), (0.070, 0.008, 0.010), "chrome",
+            rot=(0, 0, -5)),
+        Cylinder("pivot", (0.030, 0, 0.009), 0.009, 0.014, "chrome", n=8,
+                 centre=True),
+        Box("gripL", (-0.110, -0.014, 0.004), (0.130, 0.012, 0.010), "red_grip",
+            rot=(0, 0, -9)),
+        Box("gripR", (-0.110, 0.002, 0.004), (0.130, 0.012, 0.010), "red_grip",
+            rot=(0, 0, 9)),
+    ]
+
+
+def screwdriver():
+    return "prop", [
+        Cylinder("handle", (0, 0, 0.045), 0.016, 0.090, "yellow_paint", n=8,
+                 r2=0.013),
+        Cylinder("collar", (0, 0, 0.090), 0.008, 0.008, "chrome", n=8),
+        Cylinder("shaft", (0, 0, 0.098), 0.0045, 0.110, "chrome", n=6),
+        Box("tip", (-0.006, -0.0015, 0.205), (0.012, 0.003, 0.014), "chrome"),
+    ]
+
+
+def tool_board():
+    """Perforated wall board with tools hung on it, plus painted outlines -
+    the thing that says workshop faster than any amount of clutter."""
+    W, H, T = 0.90, 0.62, 0.020
+    p = [Box("board", (-W / 2, 0, 0), (W, T, H),
+             {"front": "pegboard", "back": "unseen", "left": "wood",
+              "right": "wood", "top": "wood", "bottom": "wood"})]
+    for i, (x, z, w, h) in enumerate(((-0.34, 0.40, 0.030, 0.20),
+                                      (-0.22, 0.38, 0.026, 0.22),
+                                      (-0.08, 0.42, 0.034, 0.16))):
+        p.append(Box(f"tool{i}", (x, -0.018, z), (w, 0.018, h), "chrome"))
+    p.append(Cylinder("coil", (0.24, -0.02, 0.34), 0.085, 0.020, "rubber",
+                      n=12, rot=(90, 0, 0), centre=True))
+    p.append(Box("saw", (0.02, -0.016, 0.10), (0.34, 0.014, 0.090), "chrome",
+                 rot=(0, 0, 0)))
+    p.append(Box("saw_grip", (0.34, -0.020, 0.08), (0.070, 0.020, 0.070),
+                 "wood"))
+    return "furniture", p
+
+
+def radio_valve():
+    """Wooden-cased valve set: lit tuning scale, speaker grille, two knobs."""
+    W, D, H = 0.44, 0.24, 0.30
+    return "furniture", [
+        Box("case", (-W / 2, -D / 2, 0), (W, D, H),
+            {"front": "wood", "back": "wood", "left": "wood", "right": "wood",
+             "top": "wood", "bottom": "unseen"}),
+        Box("grille", (-W / 2 + 0.03, -D / 2 - 0.008, 0.04),
+            (0.22, 0.010, 0.17), "speaker"),
+        Box("scale", (0.00, -D / 2 - 0.010, 0.15), (0.18, 0.012, 0.075),
+            "dial"),
+        Box("bezel", (-0.006, -D / 2 - 0.014, 0.144),
+            (0.192, 0.008, 0.087), "brass"),
+        Cylinder("knobA", (0.05, -D / 2 - 0.012, 0.075), 0.022, 0.022,
+                 "bakelite", n=10, rot=(90, 0, 0), centre=True),
+        Cylinder("knobB", (0.15, -D / 2 - 0.012, 0.075), 0.022, 0.022,
+                 "bakelite", n=10, rot=(90, 0, 0), centre=True),
+        Box("feet", (-W / 2 + 0.02, -D / 2 + 0.02, -0.014),
+            (W - 0.04, D - 0.04, 0.014), "bakelite"),
+    ]
+
+
+def headphones():
+    """Bakelite cups on a sprung steel arc.
+
+    Two things had to be right. Each segment sits ON the arc rather than being
+    rotated in place - otherwise every one pivots about the same point and the
+    band becomes a star. And the tangent at angle `a` from vertical is reached
+    by rotating -a, not +a: with the sign wrong the segments splay outward
+    instead of following the curve.
+    """
+    R, CZ = 0.0957, 0.018         # arc radius, and the centre it swings about
+    SPAN, N = 64.0, 9             # degrees either side of vertical
+    CUP_Z, CUP_Y = 0.032, 0.086
+    p = []
+    for i in range(N):
+        a = math.radians(-SPAN + i * (2 * SPAN / (N - 1)))
+        cy, cz = R * math.sin(a), CZ + R * math.cos(a)
+        p.append(Box(f"band{i}", (-0.006, cy - 0.016, cz - 0.005),
+                     (0.012, 0.032, 0.010), "chrome",
+                     rot=(-math.degrees(a), 0, 0)))
+    for i, sy in enumerate((-1, 1)):
+        p.append(Cylinder(f"cup{i}", (0, sy * CUP_Y, CUP_Z), 0.032, 0.028,
+                          "bakelite", n=10, rot=(90, 0, 0), centre=True))
+        p.append(Cylinder(f"pad{i}", (0, sy * (CUP_Y - 0.018), CUP_Z), 0.028,
+                          0.014, "rubber", n=10, rot=(90, 0, 0), centre=True))
+        p.append(Box(f"yoke{i}", (-0.005, sy * CUP_Y - 0.005, CUP_Z + 0.020),
+                     (0.010, 0.010, 0.034), "chrome"))
+    p.append(Cylinder("cord", (0.02, -0.10, 0.006), 0.005, 0.13, "rubber", n=6,
+                      rot=(0, 80, 28), centre=True))
+    return "prop", p
+
+
+def field_phone():
+    """Crank telephone in a wooden box."""
+    W, D, H = 0.24, 0.16, 0.20
+    return "prop", [
+        Box("case", (-W / 2, -D / 2, 0), (W, D, H),
+            {"front": "bakelite", "back": "wood", "left": "wood",
+             "right": "wood", "top": "wood", "bottom": "unseen"}),
+        Box("handset", (-0.085, -D / 2 - 0.030, H),
+            (0.170, 0.040, 0.030), "bakelite"),
+        Cylinder("ear", (-0.070, -D / 2 - 0.010, H + 0.015), 0.026, 0.026,
+                 "bakelite", n=8, centre=True),
+        Cylinder("mouth", (0.070, -D / 2 - 0.010, H + 0.015), 0.026, 0.026,
+                 "bakelite", n=8, centre=True),
+        Cylinder("crank", (W / 2 + 0.010, 0, 0.12), 0.010, 0.030, "chrome",
+                 n=6, rot=(0, 90, 0), centre=True),
+        Box("crank_arm", (W / 2 + 0.020, -0.006, 0.12), (0.012, 0.012, 0.055),
+            "chrome"),
+        Box("plate", (-0.05, -D / 2 - 0.006, 0.05), (0.10, 0.008, 0.05),
+            "brass"),
+    ]
+
+
+def gauge_wall():
+    """Pressure gauge on a stub of pipe."""
+    return "prop", [
+        Cylinder("pipe", (0, 0.03, 0), 0.016, 0.09, "steel_worn", n=8,
+                 rot=(90, 0, 0), centre=True),
+        Cylinder("body", (0, -0.030, 0), 0.058, 0.036, "brass", n=12,
+                 rot=(90, 0, 0), centre=True),
+        Cylinder("face", (0, -0.050, 0), 0.050, 0.006, "dial", n=12,
+                 rot=(90, 0, 0), centre=True),
+    ]
+
+
+def locker_blue():
+    """Same locker, painted institutional blue. A set needs repeats that are
+    not identical, and paint is the cheapest way to get one."""
+    W, D, H = 0.80, 0.50, 1.85
+    p = [Box("body", (-W / 2, -D / 2, 0.08), (W, D, H - 0.08),
+             {"front": "blue_paint", "back": "steel", "left": "blue_paint",
+              "right": "blue_paint", "top": "blue_paint", "bottom": "unseen"}),
+         Box("plinth", (-W / 2, -D / 2, 0), (W, D, 0.08), "steel_worn")]
+    for i, x in enumerate((-W / 2 + 0.02, 0.01)):
+        p.append(Box(f"door{i}", (x, -D / 2 - 0.045, 0.14),
+                     (W / 2 - 0.03, 0.045, H - 0.22),
+                     {"front": "blue_door", "back": "dark", "left": "blue_paint",
+                      "right": "blue_paint", "top": "blue_paint",
+                      "bottom": "blue_paint"}))
+    return "furniture", p
+
+
+def crate_hazard():
+    """Yellow-and-black striped shipping crate."""
+    W, D, H = 0.62, 0.40, 0.36
+    return "furniture", [
+        Box("body", (-W / 2, -D / 2, 0), (W, D, H - 0.05),
+            {"front": "hazard", "back": "hazard", "left": "yellow_paint",
+             "right": "yellow_paint", "top": "yellow_paint", "bottom": "unseen"}),
+        Box("lid", (-W / 2 - 0.012, -D / 2 - 0.012, H - 0.05),
+            (W + 0.024, D + 0.024, 0.05), "yellow_paint"),
+        Box("clasp", (-0.03, -D / 2 - 0.010, H - 0.12), (0.06, 0.012, 0.07),
+            "gunmetal"),
+    ]
+
+
+def figure_stalker():
+    """A gaunt figure in a long coat and a respirator.
+
+    Deliberately wrong: too tall, too thin, arms too long, head slightly too
+    small, standing a fraction off vertical. PS1 human meshes were crude enough
+    that a viewer fills in the rest, and the uncanny reading comes from the
+    proportions rather than from any detail the budget could not afford.
+    """
+    p = [
+        # boots and legs
+        Box("bootL", (-0.105, -0.055, 0), (0.085, 0.135, 0.085), "rubber",
+            rot=(0, 0, -8)),
+        Box("bootR", (0.022, -0.050, 0), (0.085, 0.135, 0.085), "rubber",
+            rot=(0, 0, 11)),
+        Box("legL", (-0.088, -0.036, 0.085), (0.062, 0.072, 0.420), "coat",
+            rot=(0, 2, 0)),
+        Box("legR", (0.026, -0.034, 0.085), (0.062, 0.072, 0.420), "coat",
+            rot=(0, -3, 0)),
+        # the coat: a long tapered slab, wider at the hem
+        Box("coat_skirt", (-0.135, -0.070, 0.380), (0.270, 0.150, 0.470),
+            "coat", rot=(0, 1, 0)),
+        Box("coat_body", (-0.120, -0.070, 0.840), (0.240, 0.150, 0.330),
+            "coat"),
+        Box("lapel", (-0.075, -0.082, 1.030), (0.150, 0.020, 0.140), "coat",
+            rot=(0, 0, 3)),
+        # arms hang too long, barely bent
+        Box("armL", (-0.168, -0.048, 0.700), (0.070, 0.096, 0.470), "coat",
+            rot=(0, 5, 0)),
+        Box("armR", (0.098, -0.048, 0.690), (0.070, 0.096, 0.480), "coat",
+            rot=(0, -7, 0)),
+        Box("handL", (-0.158, -0.032, 0.640), (0.052, 0.064, 0.075), "skin",
+            rot=(0, 4, 0)),
+        Box("handR", (0.104, -0.032, 0.620), (0.052, 0.064, 0.075), "skin",
+            rot=(0, -6, 0)),
+        # neck and head, tilted a few degrees off true
+        Cylinder("neck", (0, -0.004, 1.185), 0.036, 0.055, "skin", n=8),
+        Sphere("head", (0, -0.010, 1.278), 0.088, "skin", seg=10, ring=7,
+               squash=1.18, rot=(6, 0, -9)),
+        # respirator: two lenses and a filter where a face should be
+        Box("mask", (-0.078, -0.106, 1.222), (0.156, 0.060, 0.110), "rubber",
+            rot=(6, 0, -9)),
+        Box("lensL", (-0.062, -0.118, 1.288), (0.052, 0.016, 0.040),
+            "glass_lens", rot=(6, 0, -9)),
+        Box("lensR", (0.012, -0.118, 1.288), (0.052, 0.016, 0.040),
+            "glass_lens", rot=(6, 0, -9)),
+        Cylinder("filter", (0, -0.150, 1.190), 0.040, 0.075, "olive_metal",
+                 n=10, rot=(64, 0, 0), centre=True),
+        Box("hood", (-0.098, -0.098, 1.330), (0.196, 0.170, 0.062), "coat",
+            rot=(6, 0, -9)),
+    ]
+    return "furniture", p
+
+
+REGISTRY.update({
+    "SM_Hammer_01": hammer,
+    "SM_Wrench_01": wrench,
+    "SM_Pliers_01": pliers,
+    "SM_Screwdriver_01": screwdriver,
+    "SM_ToolBoard_01": tool_board,
+    "SM_Radio_Valve_01": radio_valve,
+    "SM_Headphones_01": headphones,
+    "SM_Phone_Field_01": field_phone,
+    "SM_Gauge_Wall_01": gauge_wall,
+    "SM_Locker_Blue_01": locker_blue,
+    "SM_Crate_Hazard_01": crate_hazard,
+    "SM_Figure_Stalker_01": figure_stalker,
 })

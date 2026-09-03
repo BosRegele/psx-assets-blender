@@ -444,6 +444,130 @@ def trash(img, rect, seed, density=184.0):
     return d
 
 
+@painter("blue_paint")
+def blue_paint(img, rect, seed, density=184.0):
+    """Institutional blue enamel over steel, chipping back to primer."""
+    d = base(img, rect, "blue", 0.35, 0.85, seed, 0.22, density=density)
+    x, y, w, h = rect
+    rng = np.random.default_rng(seed + 81)
+    for _ in range(max(1, w * h // 3000)):
+        cx, cy = int(rng.integers(x, x + w)), int(rng.integers(y, y + h))
+        r = max(1, int(rng.integers(1, max(2, min(w, h) // 14))))
+        d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=T.px("rust", 1))
+    edge_shade(d, rect, "blue")
+    return d
+
+
+@painter("yellow_paint")
+def yellow_paint(img, rect, seed, density=184.0):
+    d = base(img, rect, "yellow", 0.35, 0.88, seed, 0.26, density=density)
+    edge_shade(d, rect, "yellow")
+    return d
+
+
+@painter("hazard")
+def hazard(img, rect, seed, density=184.0):
+    """Diagonal warning stripes. Reads at a glance, which is the point."""
+    d = base(img, rect, "yellow", 0.45, 0.85, seed, 0.24, density=density)
+    x, y, w, h = rect
+    pitch = max(4, int(0.05 * density))
+    for i in range(-h // pitch - 1, (w + h) // pitch + 1):
+        x0 = x + i * pitch
+        d.line([(x0, y), (x0 + h, y + h)], fill=T.px("void", 1),
+               width=max(2, pitch // 2))
+    edge_shade(d, rect, "yellow")
+    return d
+
+
+@painter("bakelite")
+def bakelite(img, rect, seed, density=184.0):
+    """Dark moulded plastic - radio cases, headphone cups, telephone bodies."""
+    d = base(img, rect, "wood", 0.10, 0.34, seed, 0.14, density=density)
+    edge_shade(d, rect, "void")
+    return d
+
+
+@painter("speaker")
+def speaker(img, rect, seed, density=184.0):
+    """Perforated grille cloth over a speaker."""
+    d = base(img, rect, "paper", 0.28, 0.52, seed, 0.30, density=density)
+    x, y, w, h = rect
+    step = max(3, int(0.012 * density))
+    for gy in range(y + step, y + h - 1, step):
+        for gx in range(x + step, x + w - 1, step):
+            d.point((gx, gy), fill=T.px("void", 1))
+    edge_shade(d, rect, "wood")
+    return d
+
+
+@painter("dial")
+def dial(img, rect, seed, density=184.0):
+    """A lit tuning scale: cream ground, tick marks, a red pointer."""
+    d = base(img, rect, "paper", 0.72, 0.96, seed, 0.10, density=density)
+    x, y, w, h = rect
+    for i in range(1, 12):
+        gx = x + i * w // 12
+        d.line([(gx, y + h // 4), (gx, y + h - h // 4)], fill=T.px("void", 1))
+    d.line([(x + int(w * 0.62), y + 1), (x + int(w * 0.62), y + h - 2)],
+           fill=T.px("red", 2), width=max(1, w // 40))
+    edge_shade(d, rect, "brass")
+    return d
+
+
+@painter("skin")
+def skin(img, rect, seed, density=184.0):
+    d = base(img, rect, "skin", 0.30, 0.80, seed, 0.28, density=density)
+    edge_shade(d, rect, "skin")
+    return d
+
+
+@painter("red_grip")
+def red_grip(img, rect, seed, density=184.0):
+    """Dipped plastic handle grip."""
+    d = base(img, rect, "red", 0.45, 0.85, seed, 0.16, density=density)
+    edge_shade(d, rect, "red")
+    return d
+
+
+@painter("pegboard")
+def pegboard(img, rect, seed, density=184.0):
+    """Perforated board with painted tool outlines - the outlines are what
+    make it read as a workshop rather than as spotty hardboard."""
+    d = base(img, rect, "wood", 0.42, 0.72, seed, 0.20, density=density)
+    x, y, w, h = rect
+    step = max(4, int(0.03 * density))
+    for gy in range(y + step, y + h - 1, step):
+        for gx in range(x + step, x + w - 1, step):
+            d.point((gx, gy), fill=T.px("void", 1))
+    rng = np.random.default_rng(seed + 101)
+    for _ in range(max(2, w * h // 4000)):
+        ox, oy = int(rng.integers(x, x + w - 20)), int(rng.integers(y, y + h - 20))
+        ow, oh = int(rng.integers(10, 26)), int(rng.integers(10, 30))
+        d.rectangle([ox, oy, min(ox + ow, x + w - 2), min(oy + oh, y + h - 2)],
+                    outline=T.px("void", 1))
+    edge_shade(d, rect, "wood")
+    return d
+
+
+@painter("blue_door")
+def blue_door(img, rect, seed, density=184.0):
+    """Locker door in blue enamel: same furniture as steel_door, other paint."""
+    d = blue_paint(img, rect, seed, density)
+    x, y, w, h = rect
+    m = max(2, min(w, h) // 10)
+    d.rectangle(_in(rect, m), outline=T.px("blue", 0))
+    for i in range(4):
+        sy = y + h // 8 + i * max(2, h // 40)
+        d.line([(x + w // 3, sy), (x + 2 * w // 3, sy)], fill=T.px("void", 1))
+    hx = x + w - max(3, w // 6)
+    d.rectangle([hx - max(1, w // 40), y + h // 2 - max(2, h // 14),
+                 hx + max(1, w // 40), y + h // 2 + max(2, h // 14)],
+                fill=T.px("tin", 4), outline=T.px("void", 1))
+    edge_shade(d, rect, "blue")
+    return d
+
+
+@painter("unseen")
 @painter("hidden")
 def hidden(img, rect, seed, density=184.0):
     """The shared filler rect. Flat mid-tone: it is never seen, but a

@@ -130,10 +130,14 @@ LAYOUT = [
     # North wall sits at +Y and a prop's front face is -Y, so these take no
     # rotation. The first pass gave them 180 and turned every one to the wall.
     ("SM_Locker_Open_01", -2.95, D2 - 0.28, 0, 0),
-    ("SM_Locker_Steel_01", -2.10, D2 - 0.28, 0, 0),
+    ("SM_Locker_Blue_01", -2.10, D2 - 0.28, 0, 0),
     ("SM_Shelf_Steel_01", -0.75, D2 - 0.24, 0, 0),
     ("SM_Cabinet_Filing_01", 0.55, D2 - 0.34, 0, 0),
     ("SM_Map_Wall_01", 2.05, D2 - 0.03, 1.05, 0),
+    ("SM_Radio_Valve_01", 0.55, D2 - 0.34, 1.10, 0),
+    ("SM_ToolBoard_01", W2 - 0.03, -1.30, 1.28, -90),
+    ("SM_Gauge_Wall_01", W2 - 0.06, -2.02, 1.52, -90),
+    ("SM_Phone_Field_01", -0.10, -2.05, 0.450, 20),
     ("SM_Board_Notice_01", 3.05, D2 - 0.03, 1.15, 0),
 
     # west wall
@@ -141,7 +145,7 @@ LAYOUT = [
     ("SM_Poster_01", -W2 + 0.03, -1.15, 1.25, 90),
     ("SM_Clock_Wall_01", -W2 + 0.06, -1.95, 1.85, 90),
     ("SM_Barrel_Steel_01", -W2 + 0.42, -2.10, 0, 0),
-    ("SM_Scrap_Pile_01", -W2 + 0.50, 1.95, 0, 25),
+    ("SM_Scrap_Pile_01", 2.05, 2.20, 0, 25),
 
     # east wall: the desk corner
     ("SM_Desk_Wood_01", W2 - 0.42, 1.30, 0, -90),
@@ -156,14 +160,14 @@ LAYOUT = [
     ("SM_Chair_Wood_01", 2.35, -0.95, 0, -110),
 
     # floor clutter and refuse
-    ("SM_Crate_Ammo_01", 2.90, 1.85, 0, 20),
-    ("SM_Crate_Ammo_01", 2.92, 1.86, 0.22, -14),
+    ("SM_Crate_Ammo_01", 3.05, 2.28, 0, 20),
+    ("SM_Crate_Ammo_01", 3.07, 2.29, 0.22, -14),
     ("SM_Crate_Wood_01", -0.10, -2.05, 0, -8),
-    ("SM_JerryCan_01", 3.05, 0.55, 0, 35),
+    ("SM_JerryCan_01", 3.18, 0.10, 0, 35),
     ("SM_Bucket_01", -2.60, -1.55, 0, 0),
     ("SM_Toolbox_01", 0.55, -2.30, 0, 12),
-    ("SM_Rags_01", -3.05, -0.35, 0, 0),
-    ("SM_AmmoTin_01", 3.02, 1.20, 0, -25),
+    ("SM_Rags_01", -2.30, -0.80, 0, 0),
+    ("SM_AmmoTin_01", 2.55, -0.45, 0, -25),
     ("SM_Trash_Pile_01", 0.05, 1.55, 0, 30),
     ("SM_Trash_Pile_01", -1.95, -1.05, 0, 140),
     ("SM_Debris_01", 2.05, -1.95, 0, 60),
@@ -171,6 +175,13 @@ LAYOUT = [
     ("SM_Debris_01", 2.60, 0.20, 0, 15),
     ("SM_Cartridges_Pile_01", 0.95, 1.05, 0, 0),
     ("SM_Cartridges_Pile_01", -1.55, 1.85, 0, 70),
+    ("SM_Crate_Hazard_01", 2.95, -1.70, 0, 15),
+    ("SM_Wrench_01", -2.70, 1.30, 0.004, 110),
+    ("SM_Hammer_01", -3.00, 1.52, 0.015, (0, 90, 40)),
+
+    # He is standing in the far corner, mostly out of the light. Nothing else
+    # in the room is a person, so the silhouette does the work.
+    ("SM_Figure_Stalker_01", -2.68, -2.30, 0, 28),
 
     # table top, z 0.750. Kept inside x 0.83..1.87, y -1.33..-0.87 - several
     # of these used to hang over the edge.
@@ -183,6 +194,7 @@ LAYOUT = [
     ("SM_Pack_Cigarettes_01", 1.42, -1.10, 0.750, 40),
     ("SM_Matchbox_01", 1.50, -1.22, 0.750, -20),
     ("SM_Plate_Tin_01", 1.05, -1.15, 0.750, 0),
+    ("SM_Pliers_01", 1.24, -1.02, 0.752, 60),
     ("SM_Sausage_01", 1.05, -1.15, 0.768, (0, 90, 20)),
 
     # desk top, z 0.760
@@ -191,7 +203,9 @@ LAYOUT = [
     ("SM_Papers_01", W2 - 0.54, 1.30, 0.760, 8),
     ("SM_Books_01", W2 - 0.68, 0.80, 0.760, -6),
     ("SM_Revolver_01", W2 - 0.50, 1.05, 0.760, (0, 0, 40)),
-    ("SM_Grenade_01", W2 - 0.60, 1.55, 0.760, 0),
+    ("SM_Grenade_01", W2 - 0.64, 1.86, 0.760, 0),
+    ("SM_Headphones_01", W2 - 0.56, 1.55, 0.760, 20),
+    ("SM_Screwdriver_01", W2 - 0.40, 1.18, 0.760, (0, 90, 25)),
 
     # Shelf decks are at 0.150 / 0.710 / 1.270 / 1.830. These were placed at
     # round numbers 30mm above the steel and floated.
@@ -209,8 +223,8 @@ LAYOUT = [
     ("SM_GasMask_01", -W2 + 0.55, 1.20, 0.580, -60),
     ("SM_Vest_Armor_01", -W2 + 0.62, -0.35, 0, 70),
     ("SM_Rifle_02", -2.72, D2 - 0.42, 0.62, (0, 74, 8)),
-    ("SM_SMG_01", 2.88, 1.82, 0.480, (0, 0, 25)),
-    ("SM_AmmoBelt_01", 2.94, 1.92, 0.480, (0, 0, -34)),
+    ("SM_SMG_01", 3.03, 2.25, 0.480, (0, 0, 25)),
+    ("SM_AmmoBelt_01", 3.09, 2.35, 0.480, (0, 0, -34)),
     ("SM_Cartridge_01", 1.62, -1.02, 0.750, (0, 90, 15)),
 ]
 
@@ -226,6 +240,42 @@ SUPPORTS = {
 
 # Props that legitimately sit on something else, with the offset they ride at.
 STACKED = {"SM_Sausage_01": 0.018}     # on the plate rim
+
+
+def check_overlaps(margin=0.03, min_overlap=0.06):
+    """Floor-standing props whose plan footprints intersect.
+
+    The stalker was placed 270mm from a barrel of 280mm radius and rendered
+    inside it, which is invisible in a layout table and obvious in a render.
+    Only ground-level props are checked - things deliberately stacked on a
+    surface are meant to share a footprint.
+    """
+    import kit as _kit
+    boxes = []
+    for entry in LAYOUT:
+        name, x, y, z, rot = entry
+        if z > 0.05 or name not in props.REGISTRY:
+            continue
+        fx0, fy0, fx1, fy1 = _kit.footprint(props.REGISTRY[name]()[1])
+        # Rotate the four corners and take their AABB. A circumscribed square
+        # was conservative enough to report a right-angled desk as colliding
+        # with half the room.
+        rz = math.radians(rot[2] if isinstance(rot, (tuple, list)) else rot)
+        c, s_ = math.cos(rz), math.sin(rz)
+        pts = [(px * c - py * s_, px * s_ + py * c)
+               for px in (fx0, fx1) for py in (fy0, fy1)]
+        boxes.append((name,
+                      x + min(p[0] for p in pts), y + min(p[1] for p in pts),
+                      x + max(p[0] for p in pts), y + max(p[1] for p in pts)))
+    hits = []
+    for i, a in enumerate(boxes):
+        for b in boxes[i + 1:]:
+            ox = min(a[3], b[3]) - max(a[1], b[1])
+            oy = min(a[4], b[4]) - max(a[2], b[2])
+            if ox > min_overlap and oy > min_overlap:
+                hits.append(f"{a[0]} overlaps {b[0]} by "
+                            f"{ox * 1000:.0f}x{oy * 1000:.0f}mm")
+    return hits
 
 
 def validate(tol=0.004):
@@ -394,7 +444,9 @@ def build_camera(shot=0):
     shots = [((-2.60, -2.05, 1.68), (1.30, 1.35, 0.85)),    # across to the desk
              ((2.55, -2.10, 1.55), (-2.30, 1.90, 1.00)),    # across to the lockers
              ((0.10, -2.30, 1.32), (0.60, 2.20, 0.95)),     # down the room
-             ((2.05, -0.35, 1.20), (1.30, -1.15, 0.78))]    # the table, close
+             ((2.05, -0.35, 1.20), (1.30, -1.15, 0.78)),    # the table, close
+             ((2.20, 1.70, 1.62), (-2.55, -2.05, 1.05)),    # couch and the corner
+             ((-0.60, 0.90, 1.35), (-3.10, -2.10, 1.15))]   # straight at him
     loc, tgt = shots[shot % len(shots)]
     ob.location = loc
     ob.rotation_euler = (Vector(tgt) - Vector(loc)).to_track_quat("-Z", "Y").to_euler()
@@ -448,7 +500,7 @@ def save_blend(path="D:/PSX-Props/scene/Bunker_Scene.blend"):
     return path
 
 
-def render_all(out_dir="D:/PSX-Props/renders", shots=(0, 1, 2, 3),
+def render_all(out_dir="D:/PSX-Props/renders", shots=(0, 1, 2, 3, 4, 5),
                samples=180, res=(1920, 1080)):
     """Build once, then render every camera. Rebuilding per shot would be
     minutes of wasted work for four frames of the same room."""
@@ -462,9 +514,9 @@ def render_all(out_dir="D:/PSX-Props/renders", shots=(0, 1, 2, 3),
 
 
 def main():
-    problems = validate()
+    problems = validate() + check_overlaps()
     if problems:
-        raise ValueError("unsupported placements: " + "; ".join(problems))
+        raise ValueError("bad placements: " + "; ".join(problems))
     clear()
     room = build_room()
     dressing = build_props()

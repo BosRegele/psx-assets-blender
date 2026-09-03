@@ -49,6 +49,11 @@ def kit_report():
             offenders += 1
             lines.append(f"  {name} (worst {w:.3f})")
             lines += ["  " + r for r in rows[:3]]
+    uncovered = sum(len(kit.check_hidden(fn()[1])) for fn in props.REGISTRY.values())
+    if uncovered:
+        lines.append(f"  !! {uncovered} faces marked hidden that nothing covers "
+                     f"- they will render as flat grey")
+        worst = max(worst, 99.0)
     lines.insert(0, f"  {len(props.REGISTRY)} props, {offenders} over tolerance, "
                     f"{tiny_total} faces below texel resolution "
                     f"(< {kit.MIN_MEANINGFUL_PX}px, aspect not meaningful)")

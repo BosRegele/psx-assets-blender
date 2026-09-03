@@ -41,7 +41,16 @@ FACES = ("front", "back", "left", "right", "top", "bottom")
 # shares one 4px rect with every other hidden face instead of claiming atlas
 # space it will never show. On the couch this is the difference between a
 # 1024 and a 512 sheet.
+# Two ways a face can go untextured, and they are not the same claim:
+#   "hidden" - another part of this prop covers it. check_hidden() verifies it.
+#   "unseen" - the world covers it: a poster's back against a wall, a plinth
+#              underside on the floor. Nothing in the prop can prove that, so
+#              it is exempt from the check and has to be argued in the code.
+# Marking a visible face hidden renders a flat grey slab, which is what put a
+# grey stripe along the top of the couch.
 HIDDEN = "hidden"
+UNSEEN = "unseen"
+FILLERS = (HIDDEN, UNSEEN)
 HIDDEN_KEY = "__hidden__"
 HIDDEN_PX = 4
 
@@ -256,7 +265,7 @@ def atlas(boxes, tier, sizes=ATLAS_SIZES):
         parts = (FACES if isinstance(b, Box) else
                  Sphere.PARTS if isinstance(b, Sphere) else Cylinder.PARTS)
         for p in parts:
-            if b.surfaces[p] == HIDDEN:
+            if b.surfaces[p] in FILLERS:
                 any_hidden = True
                 continue
             items.append((f"{b.name}.{p}", *b.face_px(p, density)))
@@ -285,7 +294,7 @@ def build(boxes, tier):
         if isinstance(b, Box):
             verts.extend(b.verts())
             for f in FACES:
-                key = (HIDDEN_KEY if b.surfaces[f] == HIDDEN else f"{b.name}.{f}")
+                key = (HIDDEN_KEY if b.surfaces[f] in FILLERS else f"{b.name}.{f}")
                 u0, v0, u1, v1 = uv_rect(placed[key], size)
                 faces.append(tuple(base + i for i in Box.QUADS[f]))
                 uvs.append([(u0, v0), (u1, v0), (u1, v1), (u0, v1)])
@@ -294,7 +303,7 @@ def build(boxes, tier):
         elif isinstance(b, Sphere):
             cx, cy, cz = b.pos
             seg, ring, r = b.seg, b.ring, b.r
-            u0, v0, u1, v1 = uv_rect(placed[HIDDEN_KEY if b.surfaces["skin"] == HIDDEN
+            u0, v0, u1, v1 = uv_rect(placed[HIDDEN_KEY if b.surfaces["skin"] in FILLERS
                                             else f"{b.name}.skin"], size)
             local = []
             for j in range(ring + 1):
@@ -324,7 +333,7 @@ def build(boxes, tier):
                         faces.append((a, bb, c, dd))
                         uvs.append([(ua, va), (ub, va), (ub, vb), (ua, vb)])
                     surfaces.append(b.surfaces["skin"])
-                    rects.append(placed[HIDDEN_KEY if b.surfaces["skin"] == HIDDEN
+                    rects.append(placed[HIDDEN_KEY if b.surfaces["skin"] in FILLERS
                                         else f"{b.name}.skin"])
         else:
             cx, cy, cz = b.pos
@@ -338,7 +347,7 @@ def build(boxes, tier):
             local = _rotate(local, (cx, cy, cz + hh / 2), b.rot)
             verts.extend(local)
             bot_c, top_c = base + 2 * n, base + 2 * n + 1
-            skey = (HIDDEN_KEY if b.surfaces["side"] == HIDDEN
+            skey = (HIDDEN_KEY if b.surfaces["side"] in FILLERS
                     else f"{b.name}.side")
             su0, sv0, su1, sv1 = uv_rect(placed[skey], size)
             for i in range(n):
@@ -350,7 +359,7 @@ def build(boxes, tier):
                 rects.append(placed[skey])
             for part, centre, ring, flip in (("top", top_c, n, False),
                                              ("bottom", bot_c, 0, True)):
-                pkey = (HIDDEN_KEY if b.surfaces[part] == HIDDEN
+                pkey = (HIDDEN_KEY if b.surfaces[part] in FILLERS
                         else f"{b.name}.{part}")
                 u0, v0, u1, v1 = uv_rect(placed[pkey], size)
                 mu, mv = (u0 + u1) / 2, (v0 + v1) / 2
@@ -378,6 +387,72 @@ def build(boxes, tier):
 # ratio. That is a part under the tier's resolution, not a density fault, and
 # conflating the two makes the audit cry wolf on every small detail.
 MIN_MEANINGFUL_PX = 4
+
+
+# face -> (axis index, which end of the box, the two in-plane axes)
+_FACE_AXIS = {"front": (1, 0, (0, 2)), "back": (1, 1, (0, 2)),
+              "left": (0, 0, (1, 2)), "right": (0, 1, (1, 2)),
+              "bottom": (2, 0, (0, 1)), "top": (2, 1, (0, 1))}
+
+
+def footprint(boxes):
+    """Plan-view bounding box of a prop, in its own space: (x0, y0, x1, y1)."""
+    xs, ys = [], []
+    for b in boxes:
+        if isinstance(b, Box):
+            xs += [b.pos[0], b.pos[0] + b.size[0]]
+            ys += [b.pos[1], b.pos[1] + b.size[1]]
+        elif isinstance(b, Sphere):
+            xs += [b.pos[0] - b.r, b.pos[0] + b.r]
+            ys += [b.pos[1] - b.r, b.pos[1] + b.r]
+        else:
+            r = max(b.r, b.r2)
+            xs += [b.pos[0] - r, b.pos[0] + r]
+            ys += [b.pos[1] - r, b.pos[1] + r]
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def check_hidden(boxes, eps=0.004):
+    """Report faces marked `hidden` that nothing actually covers.
+
+    A hidden face shares one 4px filler rect, so if it turns out to be visible
+    it renders as a flat grey slab. That is exactly what happened to the couch:
+    the base top was marked hidden, but the cushions only cover the middle of
+    it and the strip in front of the backrest was on screen the whole time.
+
+    Axis-aligned parts only - a rotated part is not assumed to cover anything,
+    which errs toward reporting rather than silently passing.
+    """
+    solid = [b for b in boxes if isinstance(b, Box) and not b.rot]
+    problems = []
+    for b in boxes:
+        if not isinstance(b, Box):
+            continue
+        for f in FACES:
+            if b.surfaces[f] != HIDDEN:
+                continue
+            axis, end, plane = _FACE_AXIS[f]
+            at = b.pos[axis] + (b.size[axis] if end else 0.0)
+            lo = [b.pos[i] for i in plane]
+            hi = [b.pos[i] + b.size[i] for i in plane]
+            covered = False
+            for o in solid:
+                if o is b:
+                    continue
+                o_lo, o_hi = o.pos[axis], o.pos[axis] + o.size[axis]
+                # the other part must reach this plane from the outside
+                if end and not (o_lo <= at + eps <= o_hi + eps):
+                    continue
+                if not end and not (o_lo - eps <= at - eps <= o_hi):
+                    continue
+                if all(o.pos[a] <= lo[i] + eps and
+                       o.pos[a] + o.size[a] >= hi[i] - eps
+                       for i, a in enumerate(plane)):
+                    covered = True
+                    break
+            if not covered:
+                problems.append(f"{b.name}.{f}")
+    return problems
 
 
 def density_report(boxes, tier):
@@ -413,7 +488,7 @@ def density_report(boxes, tier):
             continue
         dm = b.dims()
         for f in FACES:
-            if b.surfaces[f] == HIDDEN:
+            if b.surfaces[f] in FILLERS:
                 continue
             a, c = _FACE_DIMS[f]
             pw, ph = b.face_px(f, density)
