@@ -439,11 +439,21 @@ def render(path, shot=0, samples=200, res=(1920, 1080)):
     return path
 
 
+def save_blend(path="D:/PSX-Props/scene/Bunker_Scene.blend"):
+    """Ship the assembled scene as a file. Rebuilding it costs a minute, but a
+    buyer wants to open it, and it keeps this work off whatever the user
+    happens to have loaded."""
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    bpy.ops.wm.save_as_mainfile(filepath=path, copy=True)
+    return path
+
+
 def render_all(out_dir="D:/PSX-Props/renders", shots=(0, 1, 2, 3),
                samples=180, res=(1920, 1080)):
     """Build once, then render every camera. Rebuilding per shot would be
     minutes of wasted work for four frames of the same room."""
     main()
+    save_blend()
     done = []
     for i in shots:
         done.append(render(f"{out_dir}/bunker_{i}.png", shot=i,

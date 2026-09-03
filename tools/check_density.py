@@ -39,16 +39,19 @@ def box_report(name, w, h, atlas_key):
 
 def kit_report():
     """Every box-composite prop. This is the gate for the bunker set."""
-    worst, lines = 1.0, []
+    worst, lines, tiny_total, offenders = 1.0, [], 0, 0
     for name, fn in props.REGISTRY.items():
         tier, parts = fn()
-        w, rows = kit.density_report(parts, tier)
+        w, rows, tiny = kit.density_report(parts, tier)
+        tiny_total += tiny
         worst = max(worst, w)
-        if rows:
+        if w > TOLERANCE:
+            offenders += 1
             lines.append(f"  {name} (worst {w:.3f})")
-            lines += [f"  " + r for r in rows[:3]]
-    if not lines:
-        lines = [f"  all {len(props.REGISTRY)} props within tolerance"]
+            lines += ["  " + r for r in rows[:3]]
+    lines.insert(0, f"  {len(props.REGISTRY)} props, {offenders} over tolerance, "
+                    f"{tiny_total} faces below texel resolution "
+                    f"(< {kit.MIN_MEANINGFUL_PX}px, aspect not meaningful)")
     return worst, lines
 
 

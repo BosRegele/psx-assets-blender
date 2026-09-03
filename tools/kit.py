@@ -372,13 +372,27 @@ def build(boxes, tier):
                 rects=rects, size=size, placed=placed, density=density)
 
 
+# Below this many texels on its short side, a face's aspect is dominated by
+# rounding to whole pixels rather than by the mapping. A cartridge rim is 2mm:
+# 1.1 texels at the handheld density, which rounds to 2 and reports a 1.8
+# ratio. That is a part under the tier's resolution, not a density fault, and
+# conflating the two makes the audit cry wolf on every small detail.
+MIN_MEANINGFUL_PX = 4
+
+
 def density_report(boxes, tier):
-    """Texel aspect for every face. check_density.py consumes this."""
+    """Texel aspect for every face. check_density.py consumes this.
+
+    Returns (worst ratio, detail rows, count of sub-resolution faces).
+    """
     density = TIERS[tier]
-    worst, rows = 1.0, []
+    worst, rows, tiny = 1.0, [], 0
     for b in boxes:
         if isinstance(b, Sphere):
             pw, ph = b.face_px("skin", density)
+            if min(pw, ph) < MIN_MEANINGFUL_PX:
+                tiny += 1
+                continue
             du, dv = pw / (TAU * b.r), ph / (math.pi * b.r)
             ratio = max(du / dv, dv / du)
             worst = max(worst, ratio)
@@ -387,6 +401,9 @@ def density_report(boxes, tier):
             continue
         if not isinstance(b, Box):
             pw, ph = b.face_px("side", density)
+            if min(pw, ph) < MIN_MEANINGFUL_PX:
+                tiny += 1
+                continue
             slant = math.hypot(b.h, b.r2 - b.r)
             du, dv = pw / (TAU * max(b.r, b.r2)), ph / max(slant, 1e-6)
             ratio = max(du / dv, dv / du)
@@ -400,9 +417,12 @@ def density_report(boxes, tier):
                 continue
             a, c = _FACE_DIMS[f]
             pw, ph = b.face_px(f, density)
+            if min(pw, ph) < MIN_MEANINGFUL_PX:
+                tiny += 1
+                continue
             du, dv = pw / dm[a], ph / dm[c]
             ratio = max(du / dv, dv / du)
             worst = max(worst, ratio)
             if ratio > 1.05:
                 rows.append(f"  {b.name}.{f}: {du:.0f} x {dv:.0f} px/m  ratio {ratio:.3f}")
-    return worst, rows
+    return worst, rows, tiny
