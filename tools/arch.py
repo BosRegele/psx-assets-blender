@@ -66,10 +66,18 @@ def lighten(rgb, mask, amount):
     return rgb + (255.0 - rgb) * (amount * mask[..., None])
 
 
-def concrete_base(size, seed, lo, hi, grime):
+def concrete_base(size, seed, lo, hi, grime, ramp="concrete", tint=None,
+                  tint_amount=0.0):
+    """`tint` mixes a second ramp in. Wall, floor and ceiling were all plain
+    concrete and read as one material wrapped around the room; a floor should
+    be browner from ground-in dirt and a soffit sootier than the wall it meets.
+    """
     o = _oct()
     n = T.fbm(size, size, seed=seed, octaves=o)
-    rgb = T.from_ramp(lo + (hi - lo) * n, "concrete")
+    rgb = T.from_ramp(lo + (hi - lo) * n, ramp)
+    if tint and tint_amount:
+        m = T.blotch(size, size, _m(0.5), _m(0.5), 0.35, seed + 77)
+        rgb = rgb * (1 - tint_amount * m[..., None]) +             T.from_ramp(lo + (hi - lo) * n, tint) * (tint_amount * m[..., None])
     return T.grime(rgb, T.fbm(size, size, seed=seed + 401, octaves=o), grime)
 
 
@@ -122,7 +130,8 @@ def wall(size=TILE, seed=900):
 
 def floor(size=TILE, seed=910):
     """Worn screed: polished traffic lanes, ground-in dirt, drum rust rings."""
-    rgb = concrete_base(size, seed, 0.12, 0.50, 0.42)
+    rgb = concrete_base(size, seed, 0.14, 0.52, 0.40,
+                        tint="rust", tint_amount=0.30)
 
     # traffic polish - broad, slightly directional
     polish = T.blotch(size, size, _m(1.10), _m(0.55), 0.50, seed + 21, octaves=4)
@@ -137,11 +146,14 @@ def floor(size=TILE, seed=910):
     d = ImageDraw.Draw(img)
     rng = np.random.default_rng(seed + 3)
 
-    pitch = _m(1.40)
+    # 900mm slabs with a raised arris, quite unlike the wall's 600mm
+    # horizontal shuttering lines
+    pitch = _m(0.90)
     for k in range(0, size, pitch):
-        d.line([(k, 0), (k, size)], fill=T.px("void", 1))
-        d.line([(0, k), (size, k)], fill=T.px("void", 1))
-        d.line([(k + 1, 0), (k + 1, size)], fill=T.px("concrete", 2))
+        for a_, b_ in (((k, 0), (k, size)), ((0, k), (size, k))):
+            d.line([a_, b_], fill=T.px("void", 0), width=2)
+        d.line([(k + 2, 0), (k + 2, size)], fill=T.px("concrete", 3))
+        d.line([(0, k + 2), (size, k + 2)], fill=T.px("concrete", 3))
 
     def rings(dd, dx, dy):
         for _ in range(4):
@@ -164,7 +176,8 @@ def floor(size=TILE, seed=910):
 
 def ceiling(size=TILE, seed=920):
     """Soffit: darker, sooty, with condensation blooms and rust weeps."""
-    rgb = concrete_base(size, seed, 0.08, 0.38, 0.42)
+    rgb = concrete_base(size, seed, 0.06, 0.34, 0.46,
+                        tint="rubber", tint_amount=0.35)
     rgb = shade(rgb, T.blotch(size, size, _m(0.60), _m(0.60), 0.52, seed + 31,
                               octaves=4), 0.45)
     rgb = shade(rgb, T.blotch(size, size, _m(0.15), _m(0.15), 0.70, seed + 32), 0.40)
@@ -173,10 +186,15 @@ def ceiling(size=TILE, seed=920):
 
     img = T.to_pil(rgb)
     d = ImageDraw.Draw(img)
-    pitch = _m(0.90)
+    # ribbed soffit: 350mm precast ribs, so the ceiling reads as a different
+    # component from the poured wall rather than the same texture turned
+    # sideways
+    pitch = _m(0.35)
+    rib = max(2, _m(0.05))
     for x in range(0, size, pitch):
-        d.line([(x, 0), (x, size)], fill=T.px("void", 1))
-        d.line([(x + 1, 0), (x + 1, size)], fill=T.px("concrete", 1))
+        d.rectangle([x, 0, x + rib, size], fill=T.px("void", 1))
+        d.line([(x + rib + 1, 0), (x + rib + 1, size)], fill=T.px("concrete", 1))
+        d.line([(x - 1, 0), (x - 1, size)], fill=T.px("void", 0))
     return np.asarray(img, dtype=np.float32)
 
 

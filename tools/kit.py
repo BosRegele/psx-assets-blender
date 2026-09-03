@@ -51,17 +51,39 @@ _FACE_DIMS = {"front": ("w", "h"), "back": ("w", "h"),
               "top": ("w", "d"), "bottom": ("w", "d")}
 
 
+def _rotate(verts, pivot, rot):
+    """Rotate a part's vertices about its own centroid, XYZ order.
+
+    Parts rotate here rather than at the object level because a prop is one
+    mesh: a cartridge lying on its side and the box it sits in have to be the
+    same object, or every piece of clutter becomes another draw call.
+    """
+    if not rot or not any(rot):
+        return verts
+    rx, ry, rz = (math.radians(a) for a in rot)
+    cx, cy, cz = pivot
+    out = []
+    for x, y, z in verts:
+        x, y, z = x - cx, y - cy, z - cz
+        y, z = y * math.cos(rx) - z * math.sin(rx), y * math.sin(rx) + z * math.cos(rx)
+        x, z = x * math.cos(ry) + z * math.sin(ry), -x * math.sin(ry) + z * math.cos(ry)
+        x, y = x * math.cos(rz) - y * math.sin(rz), x * math.sin(rz) + y * math.cos(rz)
+        out.append((x + cx, y + cy, z + cz))
+    return out
+
+
 class Box:
     """An axis-aligned box. `pos` is the minimum corner, `size` is (w, d, h)
     along (x, y, z). `surfaces` maps face names to painter keys; a bare string
     applies to every face."""
 
-    __slots__ = ("name", "pos", "size", "surfaces")
+    __slots__ = ("name", "pos", "size", "surfaces", "rot")
 
-    def __init__(self, name, pos, size, surfaces):
+    def __init__(self, name, pos, size, surfaces, rot=None):
         self.name = name
         self.pos = tuple(float(v) for v in pos)
         self.size = tuple(float(v) for v in size)
+        self.rot = tuple(rot) if rot else None
         self.surfaces = ({f: surfaces for f in FACES}
                          if isinstance(surfaces, str) else dict(surfaces))
 
@@ -77,9 +99,10 @@ class Box:
     def verts(self):
         x, y, z = self.pos
         w, d, h = self.size
-        return [(x, y, z), (x + w, y, z), (x + w, y + d, z), (x, y + d, z),
-                (x, y, z + h), (x + w, y, z + h), (x + w, y + d, z + h),
-                (x, y + d, z + h)]
+        v = [(x, y, z), (x + w, y, z), (x + w, y + d, z), (x, y + d, z),
+             (x, y, z + h), (x + w, y, z + h), (x + w, y + d, z + h),
+             (x, y + d, z + h)]
+        return _rotate(v, (x + w / 2, y + d / 2, z + h / 2), self.rot)
 
     # local vertex indices per face, wound outward
     QUADS = {"front": (0, 1, 5, 4), "back": (2, 3, 7, 6),
@@ -91,22 +114,66 @@ class Cylinder:
     """An N-gon prism. `pos` is the base centre. Packs as one wrap band plus
     two cap squares, all at the same density as the boxes around it."""
 
-    __slots__ = ("name", "pos", "r", "h", "n", "surfaces")
+    __slots__ = ("name", "pos", "r", "r2", "h", "n", "surfaces", "rot")
+
     PARTS = ("side", "top", "bottom")
 
-    def __init__(self, name, pos, radius, height, surfaces, n=10):
+    def __init__(self, name, pos, radius, height, surfaces, n=10,
+                 r2=None, rot=None, centre=False):
+        """`r2` gives the top radius: a frustum, which is what turns a blocky
+        cylinder into a bullet, a funnel or a tapered mug.
+
+        `centre=True` makes `pos` the middle of the cylinder rather than the
+        base. Rotation happens about the centroid, so an un-centred rotated
+        cylinder ends up half its length above where it was placed - which is
+        how a rifle barrel detached itself from the receiver.
+        """
         self.name = name
-        self.pos = tuple(float(v) for v in pos)
+        pos = tuple(float(v) for v in pos)
+        if centre:
+            pos = (pos[0], pos[1], pos[2] - float(height) / 2.0)
+        self.pos = pos
         self.r, self.h, self.n = float(radius), float(height), int(n)
+        self.r2 = float(r2) if r2 is not None else float(radius)
+        self.rot = tuple(rot) if rot else None
         self.surfaces = ({p: surfaces for p in self.PARTS}
                          if isinstance(surfaces, str) else dict(surfaces))
 
     def face_px(self, part, density):
+        rmax = max(self.r, self.r2)
         if part == "side":
-            return (max(4, int(round(TAU * self.r * density))),
-                    max(2, int(round(self.h * density))))
-        s = max(4, int(round(2 * self.r * density)))
+            slant = math.hypot(self.h, self.r2 - self.r)
+            return (max(4, int(round(TAU * rmax * density))),
+                    max(2, int(round(slant * density))))
+        rr = self.r if part == "bottom" else self.r2
+        s = max(4, int(round(2 * max(rr, 0.002) * density)))
         return s, s
+
+
+class Sphere:
+    """A UV sphere, mapped equirectangularly to one atlas rect.
+
+    Boxes cannot make a grenade, a bulb or a doorknob read as round at any
+    triangle budget. The rect is sized 2*pi*r by pi*r so texels stay square
+    across the equator, which is where they are actually seen.
+    """
+
+    __slots__ = ("name", "pos", "r", "seg", "ring", "surfaces", "rot", "squash")
+    PARTS = ("skin",)
+
+    def __init__(self, name, pos, radius, surfaces, seg=10, ring=6,
+                 rot=None, squash=1.0):
+        self.name = name
+        self.pos = tuple(float(v) for v in pos)
+        self.r, self.seg, self.ring = float(radius), int(seg), int(ring)
+        self.squash = float(squash)      # <1 flattens it into a pebble
+        self.rot = tuple(rot) if rot else None
+        self.surfaces = ({"skin": surfaces} if isinstance(surfaces, str)
+                         else dict(surfaces))
+
+    def face_px(self, part, density):
+        return (max(6, int(round(TAU * self.r * density))),
+                max(4, int(round(math.pi * self.r * density))))
 
 
 TAU = math.pi * 2
@@ -186,7 +253,8 @@ def atlas(boxes, tier, sizes=ATLAS_SIZES):
     density = TIERS[tier]
     items, any_hidden = [], False
     for b in boxes:
-        parts = FACES if isinstance(b, Box) else Cylinder.PARTS
+        parts = (FACES if isinstance(b, Box) else
+                 Sphere.PARTS if isinstance(b, Sphere) else Cylinder.PARTS)
         for p in parts:
             if b.surfaces[p] == HIDDEN:
                 any_hidden = True
@@ -223,15 +291,53 @@ def build(boxes, tier):
                 uvs.append([(u0, v0), (u1, v0), (u1, v1), (u0, v1)])
                 surfaces.append(b.surfaces[f])
                 rects.append(placed[key])
+        elif isinstance(b, Sphere):
+            cx, cy, cz = b.pos
+            seg, ring, r = b.seg, b.ring, b.r
+            u0, v0, u1, v1 = uv_rect(placed[HIDDEN_KEY if b.surfaces["skin"] == HIDDEN
+                                            else f"{b.name}.skin"], size)
+            local = []
+            for j in range(ring + 1):
+                phi = math.pi * j / ring
+                for i in range(seg + 1):
+                    th = TAU * i / seg
+                    local.append((cx + r * math.sin(phi) * math.cos(th),
+                                  cy + r * math.sin(phi) * math.sin(th),
+                                  cz + r * math.cos(phi) * b.squash))
+            local = _rotate(local, b.pos, b.rot)
+            verts.extend(local)
+            idx = lambda j, i: base + j * (seg + 1) + i
+            for j in range(ring):
+                for i in range(seg):
+                    a, bb = idx(j, i), idx(j, i + 1)
+                    c, dd = idx(j + 1, i + 1), idx(j + 1, i)
+                    ua, ub = u0 + (u1 - u0) * i / seg, u0 + (u1 - u0) * (i + 1) / seg
+                    va = v1 - (v1 - v0) * j / ring
+                    vb = v1 - (v1 - v0) * (j + 1) / ring
+                    if j == 0:                       # top cap: triangles
+                        faces.append((a, c, dd))
+                        uvs.append([(ua, va), (ub, vb), (ua, vb)])
+                    elif j == ring - 1:              # bottom cap
+                        faces.append((a, bb, c))
+                        uvs.append([(ua, va), (ub, va), (ub, vb)])
+                    else:
+                        faces.append((a, bb, c, dd))
+                        uvs.append([(ua, va), (ub, va), (ub, vb), (ua, vb)])
+                    surfaces.append(b.surfaces["skin"])
+                    rects.append(placed[HIDDEN_KEY if b.surfaces["skin"] == HIDDEN
+                                        else f"{b.name}.skin"])
         else:
             cx, cy, cz = b.pos
-            n, r, hh = b.n, b.r, b.h
-            for z in (cz, cz + hh):
+            n, r, r2, hh = b.n, b.r, b.r2, b.h
+            local = []
+            for z, rr in ((cz, r), (cz + hh, r2)):
                 for i in range(n):
                     a = TAU * i / n
-                    verts.append((cx + r * math.cos(a), cy + r * math.sin(a), z))
+                    local.append((cx + rr * math.cos(a), cy + rr * math.sin(a), z))
+            local += [(cx, cy, cz), (cx, cy, cz + hh)]
+            local = _rotate(local, (cx, cy, cz + hh / 2), b.rot)
+            verts.extend(local)
             bot_c, top_c = base + 2 * n, base + 2 * n + 1
-            verts += [(cx, cy, cz), (cx, cy, cz + hh)]
             skey = (HIDDEN_KEY if b.surfaces["side"] == HIDDEN
                     else f"{b.name}.side")
             su0, sv0, su1, sv1 = uv_rect(placed[skey], size)
@@ -271,9 +377,18 @@ def density_report(boxes, tier):
     density = TIERS[tier]
     worst, rows = 1.0, []
     for b in boxes:
+        if isinstance(b, Sphere):
+            pw, ph = b.face_px("skin", density)
+            du, dv = pw / (TAU * b.r), ph / (math.pi * b.r)
+            ratio = max(du / dv, dv / du)
+            worst = max(worst, ratio)
+            if ratio > 1.05:
+                rows.append(f"  {b.name}.skin: {du:.0f} x {dv:.0f} px/m  ratio {ratio:.3f}")
+            continue
         if not isinstance(b, Box):
             pw, ph = b.face_px("side", density)
-            du, dv = pw / (TAU * b.r), ph / b.h
+            slant = math.hypot(b.h, b.r2 - b.r)
+            du, dv = pw / (TAU * max(b.r, b.r2)), ph / max(slant, 1e-6)
             ratio = max(du / dv, dv / du)
             worst = max(worst, ratio)
             if ratio > 1.05:

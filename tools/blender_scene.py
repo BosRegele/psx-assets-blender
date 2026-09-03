@@ -129,19 +129,19 @@ def _euler(rot):
 LAYOUT = [
     # North wall sits at +Y and a prop's front face is -Y, so these take no
     # rotation. The first pass gave them 180 and turned every one to the wall.
-    ("SM_Locker_Steel_01", -2.95, D2 - 0.28, 0, 0),
+    ("SM_Locker_Open_01", -2.95, D2 - 0.28, 0, 0),
     ("SM_Locker_Steel_01", -2.10, D2 - 0.28, 0, 0),
     ("SM_Shelf_Steel_01", -0.75, D2 - 0.24, 0, 0),
     ("SM_Cabinet_Filing_01", 0.55, D2 - 0.34, 0, 0),
     ("SM_Map_Wall_01", 2.05, D2 - 0.03, 1.05, 0),
     ("SM_Board_Notice_01", 3.05, D2 - 0.03, 1.15, 0),
 
-    # west wall: bunks and a poster
-    (-1, 0, 0, 0, 0),  # spacer, ignored
+    # west wall
     ("SM_Bunk_Steel_01", -W2 + 0.50, 0.55, 0, 90),
     ("SM_Poster_01", -W2 + 0.03, -1.15, 1.25, 90),
     ("SM_Clock_Wall_01", -W2 + 0.06, -1.95, 1.85, 90),
     ("SM_Barrel_Steel_01", -W2 + 0.42, -2.10, 0, 0),
+    ("SM_Scrap_Pile_01", -W2 + 0.50, 1.95, 0, 25),
 
     # east wall: the desk corner
     ("SM_Desk_Wood_01", W2 - 0.42, 1.30, 0, -90),
@@ -149,61 +149,110 @@ LAYOUT = [
     ("SM_Cabinet_Wall_01", W2 - 0.20, -0.10, 1.35, -90),
     ("SM_Pipe_Valve_01", W2 - 0.22, -2.25, 0, 0),
 
-    # south side: the couch and a table
+    # south side
     ("SM_Couch_Worn_01", -1.35, -D2 + 0.48, 0, 180),
     ("SM_Table_Steel_01", 1.35, -1.10, 0, 0),
     ("SM_Stool_Metal_01", 1.35, -1.95, 0, 0),
     ("SM_Chair_Wood_01", 2.35, -0.95, 0, -110),
 
-    # floor clutter
+    # floor clutter and refuse
     ("SM_Crate_Ammo_01", 2.90, 1.85, 0, 20),
     ("SM_Crate_Ammo_01", 2.92, 1.86, 0.22, -14),
     ("SM_Crate_Wood_01", -0.10, -2.05, 0, -8),
     ("SM_JerryCan_01", 3.05, 0.55, 0, 35),
     ("SM_Bucket_01", -2.60, -1.55, 0, 0),
-    ("SM_Toolbox_01", 0.55, -2.20, 0, 12),
+    ("SM_Toolbox_01", 0.55, -2.30, 0, 12),
     ("SM_Rags_01", -3.05, -0.35, 0, 0),
     ("SM_AmmoTin_01", 3.02, 1.20, 0, -25),
+    ("SM_Trash_Pile_01", 0.05, 1.55, 0, 30),
+    ("SM_Trash_Pile_01", -1.95, -1.05, 0, 140),
+    ("SM_Debris_01", 2.05, -1.95, 0, 60),
+    ("SM_Debris_01", -0.85, 0.35, 0, 200),
+    ("SM_Debris_01", 2.60, 0.20, 0, 15),
+    ("SM_Cartridges_Pile_01", 0.95, 1.05, 0, 0),
+    ("SM_Cartridges_Pile_01", -1.55, 1.85, 0, 70),
 
-    # table top: the layer that says someone lives here
-    ("SM_Bottle_Vodka_01", 1.02, -1.02, 0.75, 0),
-    ("SM_Bottle_Beer_01", 1.62, -0.92, 0.75, 0),
-    ("SM_Mug_Enamel_01", 1.36, -1.24, 0.75, 25),
-    ("SM_Ashtray_01", 1.74, -1.26, 0.75, 0),
-    ("SM_Can_Food_01", 0.90, -1.30, 0.75, 0),
-    ("SM_Bread_01", 1.24, -0.84, 0.75, -12),
-    ("SM_Pack_Cigarettes_01", 1.56, -1.34, 0.75, 40),
-    ("SM_Matchbox_01", 1.66, -1.42, 0.75, -20),
-    ("SM_Plate_Tin_01", 1.02, -1.44, 0.75, 0),
-    ("SM_Sausage_01", 1.10, -1.47, 0.80, (0, 90, 20)),
+    # table top, z 0.750. Kept inside x 0.83..1.87, y -1.33..-0.87 - several
+    # of these used to hang over the edge.
+    ("SM_Bottle_Vodka_01", 0.95, -1.28, 0.750, 0),
+    ("SM_Bottle_Beer_01", 1.72, -1.20, 0.750, 0),
+    ("SM_Mug_Enamel_01", 1.30, -1.30, 0.750, 25),
+    ("SM_Ashtray_01", 1.55, -1.05, 0.750, 0),
+    ("SM_Can_Food_01", 1.10, -0.95, 0.750, 0),
+    ("SM_Bread_01", 1.75, -0.93, 0.750, -12),
+    ("SM_Pack_Cigarettes_01", 1.42, -1.10, 0.750, 40),
+    ("SM_Matchbox_01", 1.50, -1.22, 0.750, -20),
+    ("SM_Plate_Tin_01", 1.05, -1.15, 0.750, 0),
+    ("SM_Sausage_01", 1.05, -1.15, 0.768, (0, 90, 20)),
 
-    # desk top
-    ("SM_Radio_Field_01", W2 - 0.40, 1.70, 0.76, -90),
-    ("SM_Lamp_Oil_01", W2 - 0.30, 0.92, 0.76, 0),
-    ("SM_Papers_01", W2 - 0.55, 1.28, 0.76, 8),
-    ("SM_Books_01", W2 - 0.72, 0.78, 0.76, -6),
+    # desk top, z 0.760
+    ("SM_Radio_Field_01", W2 - 0.38, 1.72, 0.760, -90),
+    ("SM_Lamp_Oil_01", W2 - 0.34, 0.92, 0.760, 0),
+    ("SM_Papers_01", W2 - 0.54, 1.30, 0.760, 8),
+    ("SM_Books_01", W2 - 0.68, 0.80, 0.760, -6),
+    ("SM_Revolver_01", W2 - 0.50, 1.05, 0.760, (0, 0, 40)),
+    ("SM_Grenade_01", W2 - 0.60, 1.55, 0.760, 0),
 
-    # shelves: 0.15 / 0.71 / 1.27 / 1.83 decks
-    ("SM_Jar_Glass_01", -1.05, D2 - 0.24, 0.74, 0),
-    ("SM_Jar_Glass_01", -0.88, D2 - 0.26, 0.74, 0),
-    ("SM_Can_Food_01", -0.60, D2 - 0.24, 0.74, 0),
-    ("SM_BugSpray_01", -0.42, D2 - 0.26, 0.74, 0),
-    ("SM_FirstAid_01", -0.95, D2 - 0.25, 1.30, 0),
-    ("SM_Kettle_01", -0.52, D2 - 0.25, 1.30, 0),
-    ("SM_MessTin_01", -1.02, D2 - 0.24, 0.18, 0),
-    ("SM_Canteen_01", -0.62, D2 - 0.25, 0.18, 0),
-    ("SM_Helmet_Steel_01", -0.80, D2 - 0.25, 1.86, 0),
+    # Shelf decks are at 0.150 / 0.710 / 1.270 / 1.830. These were placed at
+    # round numbers 30mm above the steel and floated.
+    ("SM_MessTin_01", -1.05, D2 - 0.26, 0.150, 0),
+    ("SM_Canteen_01", -0.62, D2 - 0.26, 0.150, 0),
+    ("SM_Jar_Glass_01", -1.08, D2 - 0.28, 0.710, 0),
+    ("SM_Jar_Glass_01", -0.90, D2 - 0.26, 0.710, 0),
+    ("SM_Can_Food_01", -0.62, D2 - 0.28, 0.710, 0),
+    ("SM_BugSpray_01", -0.42, D2 - 0.26, 0.710, 0),
+    ("SM_FirstAid_01", -0.95, D2 - 0.26, 1.270, 0),
+    ("SM_Kettle_01", -0.52, D2 - 0.26, 1.270, 0),
+    ("SM_Helmet_Steel_01", -0.80, D2 - 0.26, 1.830, 0),
 
-    # gear on the bunk and around it
-    ("SM_GasMask_01", -W2 + 0.55, 1.20, 0.48, -60),
+    # weapons and gear. The bunk's lower mattress tops out at 0.580.
+    ("SM_GasMask_01", -W2 + 0.55, 1.20, 0.580, -60),
     ("SM_Vest_Armor_01", -W2 + 0.62, -0.35, 0, 70),
-    ("SM_Rifle_01", -2.72, D2 - 0.42, 0.62, (0, 74, 8)),
-    ("SM_Pistol_01", W2 - 0.62, 1.52, 0.79, 30),
+    ("SM_Rifle_02", -2.72, D2 - 0.42, 0.62, (0, 74, 8)),
+    ("SM_SMG_01", 2.88, 1.82, 0.480, (0, 0, 25)),
+    ("SM_AmmoBelt_01", 2.94, 1.92, 0.480, (0, 0, -34)),
+    ("SM_Cartridge_01", 1.62, -1.02, 0.750, (0, 90, 15)),
 ]
 
-LAMPS = [(-2.0, 1.30, ROOM["h"] - 0.30),
-         (1.60, -0.70, ROOM["h"] - 0.30),
-         (2.90, 2.00, ROOM["h"] - 0.30)]
+# Support surfaces, so a prop cannot silently float or overhang again. Values
+# are measured from the prop definitions, not typed by eye.
+SUPPORTS = {
+    "table": dict(z=0.750, x=(0.83, 1.87), y=(-1.33, -0.87)),
+    "desk": dict(z=0.760, x=(W2 - 0.70, W2 - 0.14), y=(0.70, 1.90)),
+    "shelf": dict(z=(0.150, 0.710, 1.270, 1.830),
+                  x=(-1.22, -0.28), y=(D2 - 0.42, D2 - 0.06)),
+}
+
+
+# Props that legitimately sit on something else, with the offset they ride at.
+STACKED = {"SM_Sausage_01": 0.018}     # on the plate rim
+
+
+def validate(tol=0.004):
+    """Check every placed prop that claims to sit on a surface actually does.
+
+    Three separate rounds of renders had things hovering or hanging over an
+    edge; eyeballing coordinates does not catch a 30mm float.
+    """
+    problems = []
+    for entry in LAYOUT:
+        name, x, y, z, _ = entry
+        for label, s in SUPPORTS.items():
+            zs = s["z"] if isinstance(s["z"], tuple) else (s["z"],)
+            near = [zz for zz in zs if abs(z - zz) < 0.12]
+            if not near or z < 0.05:
+                continue
+            if not (s["x"][0] <= x <= s["x"][1] and s["y"][0] <= y <= s["y"][1]):
+                continue
+            lift = STACKED.get(name, 0.0)
+            if min(abs(z - lift - zz) for zz in near) > tol:
+                problems.append(f"{name} on {label}: z={z:.3f}, "
+                                f"surface at {min(near, key=lambda q: abs(z - q)):.3f}")
+    return problems
+
+
+# Ceiling panels sit flush under the soffit; the fixture is 90mm deep.
+LAMPS = [(-2.15, 1.30), (1.55, -0.85), (2.85, 1.95), (-1.45, -1.85)]
 
 
 # The three consumables predate kit.py: they are revolved profiles built from
@@ -237,24 +286,10 @@ def build_props():
             placed.append(ob)
             continue
         if name not in cache:
-            tier, parts = props.REGISTRY[name]() if name in props.REGISTRY else (None, None)
-            if parts is None:
+            if name not in props.REGISTRY:
                 raise KeyError(f"{name} is in LAYOUT but nothing can build it")
-            r = kit.build(parts, tier)
-            me = bpy.data.meshes.new(name)
-            me.from_pydata(r["verts"], [], r["faces"])
-            me.update()
-            uv = me.uv_layers.new(name="UVMap")
-            i = 0
-            for poly in r["uvs"]:
-                for u, v in poly:
-                    uv.data[i].uv = (u, v)
-                    i += 1
-            for p in me.polygons:
-                p.use_smooth = False
-            me.materials.append(
-                pixel_material(f"MI_{name}", f"{TEX}/{name}_d.png", repeat=False))
-            cache[name] = me
+            tier, parts = props.REGISTRY[name]()
+            cache[name] = mesh_from(name, kit.build(parts, tier))
         ob = bpy.data.objects.new(name, cache[name])
         bpy.context.collection.objects.link(ob)
         ob.location = (x, y, z)
@@ -263,73 +298,75 @@ def build_props():
     return placed
 
 
-def build_lamps():
-    """Caged lamps with a real emitter inside, plus a matching point light.
+def mesh_from(name, r):
+    """Build a mesh, splitting the emissive faces into their own material slot.
 
-    The emissive geometry is what makes the fixture read as the source; the
-    point light is what actually carries the room. One without the other looks
-    either flat or unexplained.
+    A fixture needs two materials - the housing reads from the atlas like every
+    other prop, while the diffuser has to actually emit. Doing it per-polygon
+    keeps it one object and one draw call.
+    """
+    me = bpy.data.meshes.new(name)
+    me.from_pydata(r["verts"], [], r["faces"])
+    me.update()
+    uv = me.uv_layers.new(name="UVMap")
+    i = 0
+    for poly in r["uvs"]:
+        for u, v in poly:
+            uv.data[i].uv = (u, v)
+            i += 1
+    for p in me.polygons:
+        p.use_smooth = False
+    me.materials.append(pixel_material(f"MI_{name}", f"{TEX}/{name}_d.png",
+                                       repeat=False))
+    if "emitter" in r["surfaces"]:
+        glow = bpy.data.materials.new(f"MI_{name}_Emit")
+        glow.use_nodes = True
+        nt = glow.node_tree
+        bsdf = nt.nodes["Principled BSDF"]
+        bsdf.inputs["Base Color"].default_value = (1.0, 0.93, 0.80, 1.0)
+        bsdf.inputs["Emission Color"].default_value = (1.0, 0.86, 0.62, 1.0)
+        bsdf.inputs["Emission Strength"].default_value = 14.0
+        me.materials.append(glow)
+        for p, surf in zip(me.polygons, r["surfaces"]):
+            p.material_index = 1 if surf == "emitter" else 0
+    return me
+
+
+def build_lamps():
+    """Ceiling panels: an emissive diffuser plus a matching area light.
+
+    An earlier version hung bulkhead cans with a point light inside them and a
+    cold area light floating against a wall - which read, correctly, as an
+    unexplained glow. Light now comes from a fixture you can see.
     """
     obs = []
-    lamp_mesh = None
-    tier, parts = props.REGISTRY["SM_Lamp_Cage_01"]()
+    tier, parts = props.REGISTRY["SM_CeilingLight_01"]()
     r = kit.build(parts, tier)
-    for i, (x, y, z) in enumerate(LAMPS):
-        if lamp_mesh is None:
-            me = bpy.data.meshes.new("SM_Lamp_Cage_01")
-            me.from_pydata(r["verts"], [], r["faces"])
-            me.update()
-            uv = me.uv_layers.new(name="UVMap")
-            k = 0
-            for poly in r["uvs"]:
-                for u, v in poly:
-                    uv.data[k].uv = (u, v)
-                    k += 1
-            for p in me.polygons:
-                p.use_smooth = False
-            me.materials.append(pixel_material(
-                "MI_SM_Lamp_Cage_01", f"{TEX}/SM_Lamp_Cage_01_d.png",
-                repeat=False, emission=3.0))
-            lamp_mesh = me
-        ob = bpy.data.objects.new(f"Lamp_Fixture_{i}", lamp_mesh)
+    me = mesh_from("SM_CeilingLight_01", r)
+    z = ROOM["h"] - 0.09
+    for i, (x, y) in enumerate(LAMPS):
+        ob = bpy.data.objects.new(f"CeilingLight_{i}", me)
         bpy.context.collection.objects.link(ob)
         ob.location = (x, y, z)
-        ob.rotation_euler = (math.pi, 0, 0)      # hangs downward
-        # The fixture's glass is an opaque diffuse texture like everything else
-        # here, so a bulb inside it is a bulb inside a sealed tin - the first
-        # lit render came out black for exactly this reason. Let light through
-        # the housing rather than faking a transmissive shader the rest of the
-        # kit does not use.
-        ob.visible_shadow = False
+        ob.rotation_euler = (0, 0, math.radians(90 if i % 2 else 0))
+        ob.visible_shadow = False       # the housing must not block its own panel
         obs.append(ob)
 
-        bulb = bpy.data.lights.new(f"Bulb_{i}", type="POINT")
-        bulb.energy = 150.0
-        bulb.color = (1.0, 0.78, 0.52)
-        bulb.shadow_soft_size = 0.08
-        lo = bpy.data.objects.new(f"Bulb_{i}", bulb)
+        panel = bpy.data.lights.new(f"Panel_{i}", type="AREA")
+        panel.energy = 78.0
+        panel.color = (1.0, 0.82, 0.58)
+        panel.shape = "RECTANGLE"
+        panel.size, panel.size_y = 0.56, 0.17
+        lo = bpy.data.objects.new(f"Panel_{i}", panel)
         bpy.context.collection.objects.link(lo)
-        lo.location = (x, y, z - 0.20)
+        lo.location = (x, y, z - 0.03)
+        lo.rotation_euler = (math.pi, 0, math.radians(90 if i % 2 else 0))
         obs.append(lo)
 
-    # a cold sliver from the doorway, so the warm practicals have something
-    # to sit against
-    key = bpy.data.lights.new("Doorway", type="AREA")
-    key.energy = 55.0
-    key.color = (0.58, 0.70, 1.0)
-    key.size, key.size_y = 0.55, 1.7
-    key.shape = "RECTANGLE"
-    ko = bpy.data.objects.new("Doorway", key)
-    bpy.context.collection.objects.link(ko)
-    ko.location = (ROOM["w"] / 2 - 0.06, -2.15, 1.10)
-    ko.rotation_euler = (0, math.radians(-90), 0)
-    ko.visible_camera = False        # it is a light, not a glowing panel on the wall
-    obs.append(ko)
-
-    # very dim cool fill so the darks keep some material information instead of
+    # Very dim cool fill so the darks keep material information instead of
     # crushing to black. A bunker should be dark, not empty.
     fill = bpy.data.lights.new("Fill", type="AREA")
-    fill.energy = 4.0
+    fill.energy = 5.0
     fill.color = (0.66, 0.74, 0.95)
     fill.size, fill.size_y = ROOM["w"] * 0.7, ROOM["d"] * 0.7
     fill.shape = "RECTANGLE"
@@ -415,6 +452,9 @@ def render_all(out_dir="D:/PSX-Props/renders", shots=(0, 1, 2, 3),
 
 
 def main():
+    problems = validate()
+    if problems:
+        raise ValueError("unsupported placements: " + "; ".join(problems))
     clear()
     room = build_room()
     dressing = build_props()

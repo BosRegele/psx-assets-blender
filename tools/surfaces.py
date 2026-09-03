@@ -380,6 +380,70 @@ def chrome(img, rect, seed, density=184.0):
     return d
 
 
+@painter("brass")
+def brass_(img, rect, seed, density=184.0):
+    d = base(img, rect, "brass", 0.42, 0.95, seed, 0.14, density=density)
+    edge_shade(d, rect, "brass")
+    return d
+
+
+@painter("copper")
+def copper(img, rect, seed, density=184.0):
+    d = base(img, rect, "rust", 0.55, 0.95, seed, 0.12, density=density)
+    edge_shade(d, rect, "rust")
+    return d
+
+
+@painter("gunmetal")
+def gunmetal(img, rect, seed, density=184.0):
+    """Blued steel: darker and tighter than the galvanised `steel` used on
+    furniture, so a weapon does not read as a filing cabinet."""
+    d = base(img, rect, "rubber", 0.40, 0.85, seed, 0.16, density=density)
+    x, y, w, h = rect
+    T.scratches(img, max(2, w * h // 1600), T.px("tin", 2), seed=seed + 5,
+                length=max(3, w // 8), ybox=(y, y + h))
+    edge_shade(d, rect, "rubber")
+    return d
+
+
+@painter("emitter")
+def emitter(img, rect, seed, density=184.0):
+    """The lit face of a fixture. The scene gives this its own emissive
+    material slot; the texture is only what it looks like switched off."""
+    x, y, w, h = rect
+    ImageDraw.Draw(img).rectangle([x, y, x + w - 1, y + h - 1],
+                                  fill=T.px("paper", 4))
+    return ImageDraw.Draw(img)
+
+
+@painter("coat")
+def coat(img, rect, seed, density=184.0):
+    d = base(img, rect, "olive", 0.18, 0.52, seed, 0.34, density=density)
+    x, y, w, h = rect
+    for cy in range(y + h // 4, y + h, max(3, h // 5)):   # fold shadows
+        d.line([(x, cy), (x + w - 1, cy)], fill=T.px("olive", 0))
+    edge_shade(d, rect, "olive")
+    return d
+
+
+@painter("trash")
+def trash(img, rect, seed, density=184.0):
+    """Indeterminate refuse: torn paper, wet card, rust, and grease. Reads as
+    a heap precisely because no single material dominates."""
+    o = _oct(density)
+    x, y, w, h = rect
+    n = T.fbm(h, w, seed=seed, octaves=o)
+    ramps = ("paper", "rust", "concrete", "olive")
+    rgb = T.from_ramp(0.25 + 0.6 * n, ramps[seed % len(ramps)])
+    sel = T.blotch(h, w, max(2, o[0]), max(2, o[0]), 0.45, seed + 5)
+    rgb = rgb * (1 - sel[..., None]) +         T.from_ramp(0.2 + 0.6 * n, ramps[(seed + 1) % len(ramps)]) * sel[..., None]
+    rgb = T.grime(rgb, T.fbm(h, w, seed=seed + 91, octaves=o), 0.45)
+    img.paste(T.to_pil(rgb), (x, y))
+    d = ImageDraw.Draw(img)
+    edge_shade(d, rect, "void")
+    return d
+
+
 @painter("hidden")
 def hidden(img, rect, seed, density=184.0):
     """The shared filler rect. Flat mid-tone: it is never seen, but a

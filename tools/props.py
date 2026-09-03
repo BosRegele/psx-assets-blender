@@ -8,6 +8,8 @@ Box `pos` is the minimum corner, `size` is (w, d, h) along (x, y, z).
 Cylinder `pos` is the base centre. Every prop's origin is at floor level,
 centred in plan, so it drops onto a floor without fixup.
 """
+import math
+
 from kit import Box, Cylinder
 
 # --- storage ---------------------------------------------------------------
@@ -612,4 +614,267 @@ REGISTRY.update({
     "SM_Poster_01": poster_wall,
     "SM_Clock_Wall_01": wall_clock,
     "SM_Rags_01": rag_pile,
+})
+
+
+# --- round things ----------------------------------------------------------
+# Everything above this line is boxes and straight cylinders, which is why the
+# weapons and the gas mask read as blocky. Frustums, spheres and per-part
+# rotation are what let a cartridge taper and a grenade be round at a budget
+# a PS1 would have accepted.
+
+from kit import Sphere
+
+
+def ceiling_light():
+    """Surface-mounted panel fixture. The `emitter` face gets its own emissive
+    material slot in the scene, so the light visibly comes from the diffuser
+    rather than from an unexplained point in the air."""
+    W, D, H = 0.62, 0.22, 0.09
+    return "furniture", [
+        Box("housing", (-W / 2, -D / 2, 0), (W, D, H),
+            {"front": "steel_worn", "back": "steel_worn", "left": "steel",
+             "right": "steel", "top": "hidden", "bottom": "steel_worn"}),
+        Box("diffuser", (-W / 2 + 0.03, -D / 2 + 0.025, -0.018),
+            (W - 0.06, D - 0.05, 0.020), "emitter"),
+        Box("bracketL", (-W / 2 + 0.06, -0.018, H), (0.03, 0.036, 0.05), "steel"),
+        Box("bracketR", (W / 2 - 0.09, -0.018, H), (0.03, 0.036, 0.05), "steel"),
+    ]
+
+
+def cartridge():
+    """A single rifle round: tapered brass case, copper tip."""
+    return "prop", [
+        Cylinder("rim", (0, 0, 0), 0.0060, 0.002, "brass", n=8),
+        Cylinder("case", (0, 0, 0.002), 0.0058, 0.036, "brass", n=8, r2=0.0042),
+        Cylinder("neck", (0, 0, 0.038), 0.0042, 0.006, "brass", n=8, r2=0.0040),
+        Cylinder("bullet", (0, 0, 0.044), 0.0040, 0.016, "copper", n=8, r2=0.0012),
+    ]
+
+
+def cartridge_pile():
+    """Loose rounds lying where they were dropped."""
+    p = []
+    spread = ((0.00, 0.00, 90, 12), (0.03, 0.015, 90, -34), (-0.025, 0.02, 90, 58),
+              (0.012, -0.028, 90, 140), (-0.04, -0.01, 90, 96), (0.05, -0.02, 90, 20))
+    for i, (dx, dy, ry, rz) in enumerate(spread):
+        p.append(Cylinder(f"case{i}", (dx, dy, 0.006), 0.0058, 0.036, "brass",
+                          n=8, r2=0.0042, rot=(0, ry, rz), centre=True))
+        p.append(Cylinder(f"tip{i}", (dx + 0.026, dy, 0.006), 0.0040, 0.016, "copper",
+                          n=8, r2=0.0012, rot=(0, ry, rz), centre=True))
+    return "prop", p
+
+
+def ammo_belt():
+    """Linked belt. Rounds nearly touching, with a visible link between each -
+    spaced out they read as beads on a string rather than as ammunition."""
+    p = []
+    for i in range(11):
+        x = -0.16 + i * 0.032
+        tilt = 5 * math.sin(i * 0.9)
+        p.append(Cylinder(f"rnd{i}", (x, 0.004, 0.028), 0.0062, 0.052, "brass",
+                          n=8, r2=0.0044, rot=(90 + tilt, 0, 0), centre=True))
+        p.append(Cylinder(f"tip{i}", (x, -0.030, 0.028), 0.0044, 0.018, "copper",
+                          n=8, r2=0.0014, rot=(90 + tilt, 0, 0), centre=True))
+        p.append(Box(f"link{i}", (x - 0.014, 0.010, 0.014), (0.028, 0.026, 0.012),
+                     "gunmetal", rot=(tilt, 0, 0)))
+    return "prop", p
+
+
+def grenade():
+    """Fragmentation grenade: a squashed sphere with a fuse."""
+    return "prop", [
+        Sphere("body", (0, 0, 0.038), 0.030, "olive_metal", seg=12, ring=8,
+               squash=1.25),
+        Cylinder("collar", (0, 0, 0.066), 0.011, 0.010, "gunmetal", n=8),
+        Cylinder("fuse", (0, 0, 0.076), 0.009, 0.020, "gunmetal", n=8, r2=0.007),
+        Box("lever", (-0.006, -0.030, 0.062), (0.012, 0.038, 0.006), "gunmetal"),
+    ]
+
+
+def rifle_v2():
+    """Rounded service rifle: cylindrical barrel and gas tube, tapered muzzle,
+    curved magazine. The box-composite version read as a plank."""
+    return "prop", [
+        Box("receiver", (-0.17, -0.026, 0.0), (0.33, 0.052, 0.080), "gunmetal"),
+        Box("stock", (-0.45, -0.024, -0.018), (0.29, 0.048, 0.086), "wood",
+            rot=(0, -4, 0)),
+        Box("comb", (-0.33, -0.022, 0.066), (0.15, 0.044, 0.026), "wood"),
+        Box("grip", (-0.10, -0.023, -0.112), (0.050, 0.046, 0.118), "wood",
+            rot=(0, -14, 0)),
+        Cylinder("handguard", (0.28, 0, 0.038), 0.028, 0.20, "wood", n=10,
+                 rot=(0, 90, 0), centre=True),
+        Cylinder("barrel", (0.50, 0, 0.038), 0.011, 0.16, "gunmetal", n=8,
+                 r2=0.009, rot=(0, 90, 0), centre=True),
+        Cylinder("gastube", (0.34, 0, 0.070), 0.008, 0.16, "gunmetal", n=6,
+                 rot=(0, 90, 0), centre=True),
+        Cylinder("muzzle", (0.66, 0, 0.038), 0.013, 0.030, "gunmetal", n=8,
+                 r2=0.011, rot=(0, 90, 0), centre=True),
+        Box("mag", (-0.02, -0.022, -0.175), (0.072, 0.044, 0.170), "gunmetal",
+            rot=(0, 12, 0)),
+        Cylinder("rearsight", (-0.10, 0, 0.088), 0.010, 0.022, "gunmetal", n=6),
+        Cylinder("frontsight", (0.60, 0, 0.056), 0.008, 0.026, "gunmetal", n=6),
+    ]
+
+
+def smg():
+    """Compact submachine gun with a wire stock."""
+    return "prop", [
+        Box("receiver", (-0.10, -0.024, 0), (0.26, 0.048, 0.070), "gunmetal"),
+        Cylinder("barrel", (0.22, 0, 0.034), 0.010, 0.13, "gunmetal", n=8,
+                 rot=(0, 90, 0), centre=True),
+        Cylinder("shroud", (0.20, 0, 0.034), 0.020, 0.10, "gunmetal", n=10,
+                 rot=(0, 90, 0), centre=True),
+        Box("grip", (-0.04, -0.020, -0.100), (0.044, 0.040, 0.104), "rubber",
+            rot=(0, -12, 0)),
+        Box("mag", (0.06, -0.018, -0.150), (0.052, 0.036, 0.155), "gunmetal"),
+        Box("stockA", (-0.28, -0.020, 0.020), (0.19, 0.008, 0.010), "gunmetal"),
+        Box("stockB", (-0.28, 0.012, 0.020), (0.19, 0.008, 0.010), "gunmetal"),
+        Box("butt", (-0.30, -0.024, 0.006), (0.026, 0.048, 0.040), "gunmetal"),
+    ]
+
+
+def revolver():
+    """Service revolver, 235mm overall. The first pass had a grip as long as
+    the frame; a sidearm's proportions are unforgiving because everyone knows
+    what one looks like."""
+    return "prop", [
+        Box("frame", (-0.040, -0.013, 0), (0.085, 0.026, 0.032), "gunmetal"),
+        Cylinder("cyl", (0.000, 0, 0.016), 0.019, 0.036, "gunmetal", n=10,
+                 rot=(0, 90, 0), centre=True),
+        Cylinder("barrel", (0.082, 0, 0.016), 0.0085, 0.075, "gunmetal", n=8,
+                 rot=(0, 90, 0), centre=True),
+        Box("rib", (0.046, -0.005, 0.026), (0.072, 0.010, 0.008), "gunmetal"),
+        Box("grip", (-0.044, -0.014, -0.072), (0.034, 0.028, 0.076), "rubber",
+            rot=(0, -20, 0)),
+        Box("hammer", (-0.044, -0.006, 0.030), (0.016, 0.012, 0.014), "gunmetal"),
+        Box("guard", (-0.014, -0.010, -0.030), (0.040, 0.020, 0.014), "gunmetal"),
+        Box("trigger", (-0.004, -0.004, -0.026), (0.008, 0.008, 0.016),
+            "gunmetal", rot=(0, 12, 0)),
+    ]
+
+
+# --- refuse ----------------------------------------------------------------
+
+def trash_pile():
+    """A heap of indeterminate refuse. Squashed spheres and tilted boxes read
+    as a pile; a stack of neat boxes never does."""
+    p = []
+    lumps = ((0.00, 0.00, 0.075, 0.55, (12, 8, 20)),
+             (0.09, 0.04, 0.055, 0.60, (-10, 14, 70)),
+             (-0.08, 0.05, 0.048, 0.50, (16, -8, 130)),
+             (0.03, -0.09, 0.060, 0.58, (-14, 10, 200)),
+             (-0.10, -0.06, 0.042, 0.52, (8, 12, 300)))
+    for i, (x, y, r, sq, rot) in enumerate(lumps):
+        p.append(Sphere(f"lump{i}", (x, y, r * sq), r, "trash",
+                        seg=8, ring=5, squash=sq, rot=rot))
+    for i, (x, y, w, d, h, rot) in enumerate(
+            ((0.06, -0.02, 0.10, 0.07, 0.035, (0, 18, 26)),
+             (-0.05, 0.09, 0.08, 0.06, 0.030, (12, 0, 118)),
+             (0.11, 0.09, 0.07, 0.05, 0.025, (-14, 6, 200)))):
+        p.append(Box(f"card{i}", (x, y, 0.01), (w, d, h), "trash", rot=rot))
+    for i, (x, y, rot) in enumerate(((-0.13, -0.02, (0, 90, 30)),
+                                     (0.14, -0.06, (0, 90, 110)))):
+        p.append(Cylinder(f"can{i}", (x, y, 0.033), 0.033, 0.095, "steel_worn",
+                          n=8, rot=rot, centre=True))
+    return "furniture", p
+
+
+def scrap_pile():
+    """Cut offcuts and bent plate - the industrial cousin of the trash heap."""
+    p = []
+    for i, (x, y, z, w, d, h, rot) in enumerate(
+            ((0.00, 0.00, 0.00, 0.28, 0.20, 0.020, (4, 3, 12)),
+             (-0.04, 0.03, 0.02, 0.22, 0.16, 0.018, (-8, 6, 62)),
+             (0.06, -0.03, 0.04, 0.24, 0.12, 0.016, (10, -5, 118)),
+             (0.02, 0.05, 0.055, 0.16, 0.14, 0.014, (-6, 9, 170)))):
+        p.append(Box(f"plate{i}", (x - w / 2, y - d / 2, z), (w, d, h),
+                     "steel_worn", rot=rot))
+    for i, (x, y, rot) in enumerate(((0.12, 0.06, (0, 78, 40)),
+                                     (-0.11, -0.07, (0, 84, 130)),
+                                     (0.03, -0.10, (0, 70, 200)))):
+        p.append(Cylinder(f"bar{i}", (x, y, 0.030), 0.014, 0.30, "steel_worn",
+                          n=6, rot=rot, centre=True))
+    return "furniture", p
+
+
+def debris_small():
+    """Loose floor litter to scatter between the big pieces."""
+    p = []
+    for i, (x, y, r, sq, rot) in enumerate(
+            ((0.00, 0.00, 0.028, 0.45, (0, 0, 20)),
+             (0.07, 0.05, 0.020, 0.40, (0, 0, 80)),
+             (-0.06, 0.03, 0.024, 0.38, (0, 0, 150)))):
+        p.append(Sphere(f"bit{i}", (x, y, r * sq), r, "trash",
+                        seg=6, ring=4, squash=sq, rot=rot))
+    for i, (x, y, rot) in enumerate(((0.05, -0.05, (2, 0, 24)),
+                                     (-0.04, -0.06, (0, 3, 96)))):
+        p.append(Box(f"paper{i}", (x, y, 0.001), (0.09, 0.065, 0.003),
+                     "paper", rot=rot))
+    return "prop", p
+
+
+def locker_open():
+    """Locker with one door swung open: hanging rail, hanger and a coat.
+
+    Built from panels, not a solid box with a dark face painted on the front.
+    A closed box has no interior, so the coat inside the first version was
+    sealed in and invisible - the whole point of an open door is that you can
+    see what is in there.
+    """
+    W, D, H = 0.80, 0.50, 1.85
+    t = 0.025                      # sheet thickness
+    hw = W / 2 - t
+    p = [
+        Box("plinth", (-W / 2, -D / 2, 0), (W, D, 0.08), "steel_worn"),
+        Box("back", (-W / 2, D / 2 - t, 0.08), (W, t, H - 0.08),
+            {"front": "steel_worn", "back": "steel", "left": "steel",
+             "right": "steel", "top": "steel", "bottom": "hidden"}),
+        Box("sideL", (-W / 2, -D / 2, 0.08), (t, D, H - 0.08), "steel_panel"),
+        Box("sideR", (W / 2 - t, -D / 2, 0.08), (t, D, H - 0.08), "steel_panel"),
+        Box("divider", (-t / 2, -D / 2 + t, 0.08), (t, D - t, H - 0.08), "steel"),
+        Box("top", (-W / 2, -D / 2, H - t), (W, D, t), "steel"),
+        Box("shelf", (-W / 2 + t, -D / 2 + t, H - 0.30), (hw, D - 2 * t, t),
+            "steel_worn"),
+        # right bay stays shut
+        Box("door_shut", (t / 2, -D / 2 - 0.04, 0.10), (hw, 0.04, H - 0.14),
+            {"front": "steel_door", "back": "steel", "left": "steel",
+             "right": "steel", "top": "steel", "bottom": "steel"}),
+        # left bay's door, hinged on the outer jamb and swung open
+        Box("door_open", (-W / 2 - 0.01, -D / 2 - 0.40, 0.10),
+            (0.04, hw, H - 0.14),
+            {"front": "steel_panel", "back": "steel_door", "left": "steel_door",
+             "right": "steel_panel", "top": "steel", "bottom": "steel"},
+            rot=(0, 0, -16)),
+        # contents of the open bay
+        Cylinder("rail", (-W / 4, 0, H - 0.36), 0.010, hw - 0.02, "chrome",
+                 n=6, rot=(0, 90, 0), centre=True),
+        Box("hanger_bar", (-W / 4 - 0.12, -0.010, H - 0.52),
+            (0.24, 0.010, 0.010), "chrome"),
+        Cylinder("hanger_hook", (-W / 4, 0, H - 0.51), 0.006, 0.085, "chrome",
+                 n=6),
+        Box("coat_shoulder", (-W / 4 - 0.15, -0.075, H - 0.64),
+            (0.30, 0.15, 0.12), "coat"),
+        Box("coat", (-W / 4 - 0.13, -0.068, H - 1.16), (0.26, 0.14, 0.54),
+            "coat"),
+        Box("coat_hem", (-W / 4 - 0.14, -0.070, H - 1.22),
+            (0.28, 0.145, 0.07), "coat", rot=(0, 0, 5)),
+        Box("boots", (-W / 4 - 0.11, -0.06, 0.08), (0.22, 0.13, 0.13), "rubber"),
+    ]
+    return "furniture", p
+
+
+REGISTRY.update({
+    "SM_CeilingLight_01": ceiling_light,
+    "SM_Cartridge_01": cartridge,
+    "SM_Cartridges_Pile_01": cartridge_pile,
+    "SM_AmmoBelt_01": ammo_belt,
+    "SM_Grenade_01": grenade,
+    "SM_Rifle_02": rifle_v2,
+    "SM_SMG_01": smg,
+    "SM_Revolver_01": revolver,
+    "SM_Trash_Pile_01": trash_pile,
+    "SM_Scrap_Pile_01": scrap_pile,
+    "SM_Debris_01": debris_small,
+    "SM_Locker_Open_01": locker_open,
 })
