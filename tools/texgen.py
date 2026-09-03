@@ -62,41 +62,48 @@ def scratches(img, count, colour, seed=1, length=8):
     return img
 
 
-def wordmark(d, box, seed=2, rows=1, density=0.72, colour=(0, 0, 0)):
+def wordmark(d, box, seed=2, rows=1, colour=(0, 0, 0)):
     """Blocky pseudo-letterforms grouped into words.
 
-    At 64px a real typeface turns to mush, so the era's artists suggested
-    text with rectangles instead. The trick is that uniform bars read as a
-    barcode - what sells it as language is varied glyph width, a few short
-    x-height glyphs among the tall ones, and real word gaps. Also sidesteps
-    every trademark problem.
+    At this resolution a real typeface turns to mush, so the era's artists
+    suggested text with rectangles instead. Three things stop it reading as a
+    barcode: varied glyph width, a third of glyphs sitting at x-height rather
+    than cap-height, and genuine word gaps.
+
+    Glyph metrics derive from the row height, so the same call produces
+    correctly-proportioned lettering on a 64px and a 256px atlas alike. Fixing
+    them in absolute pixels is what turns letters into thin bars when the
+    texture size changes.
     """
     rng = np.random.default_rng(seed)
     x0, y0, x1, y1 = box
     rh = max(3, (y1 - y0) // rows)
+    lo, hi = max(2, round(rh * 0.34)), max(3, round(rh * 0.72))
+    kern, space = max(1, rh // 7), max(2, rh // 3)
     for r in range(rows):
         top = y0 + r * rh
         x = x0
-        # 1-3 words per row, each 2-5 glyphs
-        while x < x1 - 2:
-            glyphs = int(rng.integers(2, 6))
-            for _ in range(glyphs):
-                w = int(rng.integers(2, 5))
+        while x < x1 - lo:
+            for _ in range(int(rng.integers(2, 6))):      # 2-5 glyphs per word
+                w = int(rng.integers(lo, hi + 1))
                 if x + w > x1:
                     break
-                # a third of glyphs sit at x-height instead of cap-height
                 short = rng.random() < 0.34
                 gt = top + (rh // 3 if short else 0)
                 d.rectangle([x, gt, x + w - 1, top + rh - 2], fill=colour)
-                x += w + 1
-            x += 3  # word gap
+                x += w + kern
+            x += space
     return d
 
 
 def smallprint(d, box, colour, seed=3, gap=2):
-    """Horizontal dashes standing in for ingredient text."""
+    """Horizontal dashes standing in for ingredient text.
+
+    Ragged right edges are what make it read as prose rather than as rules.
+    """
     rng = np.random.default_rng(seed)
     x0, y0, x1, y1 = box
+    gap = max(2, gap)
     for y in range(y0, y1, gap):
         w = int(rng.integers((x1 - x0) // 3, x1 - x0))
         d.line([(x0, y), (x0 + w, y)], fill=colour)
@@ -109,3 +116,16 @@ def to_pil(rgb):
 
 def px(name, i):
     return tuple(int(v) for v in palette.ramp(name)[i])
+
+
+def streaks(h, w, count=14, seed=5, width=(1, 4)):
+    """Vertical bands, 0..1. Glass carries mould lines and dried runs; without
+    them a flat tint dithers into a visible regular cross-hatch instead of
+    reading as a surface."""
+    rng = np.random.default_rng(seed)
+    out = np.zeros((h, w), dtype=np.float32)
+    for _ in range(count):
+        x = int(rng.integers(0, w))
+        bw = int(rng.integers(*width))
+        out[:, x:x + bw] += float(rng.random()) * 0.6 + 0.2
+    return np.clip(out, 0, 1)

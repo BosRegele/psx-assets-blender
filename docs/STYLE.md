@@ -9,13 +9,13 @@ comes from every prop looking like it was made for the *same game*.
 | Rule | Value | Why |
 |---|---|---|
 | Triangle budget | 120-500 tris per prop | PS1 pushed ~180k tris/sec total |
-| Texture size | 64x64 small props, 128x128 hero props | matches 1MB VRAM budgets |
+| Texture size | 128x128, or 128x256 for tall props | matches 1MB VRAM budgets |
 | Palette | fixed 32-colour CLUT | see `palette.png` |
 | Colour depth | 15-bit, every channel a multiple of 8 | PS1 framebuffer was 5 bits/channel |
 | Dither | ordered Bayer 4x4, strength 20 | the single strongest era cue |
 | Filtering | `Closest` / point sampling, no mipmaps | bilinear instantly kills the look |
 | Shading | flat faces, roughness 1.0, specular 0, metallic 0 | no PBR anywhere |
-| Texel density | 64 px/m, uniform across the bundle | mismatched density is the #1 tell of an asset flip |
+| Texel density | ~485-551 px/m, square texels on every prop | non-square texels are the #1 tell of an amateur asset |
 | Scale | real-world metres | can 102mm, bottle 300mm, pack 88mm |
 | Pivot | base centre, +Z up | drops onto a floor without fixup |
 
@@ -48,12 +48,48 @@ import time.
    language at play distance. It also keeps every label trademark-free.
 4. One vertical specular column is what makes unlit glass read as glass.
 
+## Texel density: the rule that matters most
+
+A texel must be square on the model. If it is not, the texture reads as smeared
+no matter how good the artwork is - and on a revolved shape like a bottle it is
+very easy to get badly wrong. The first version of this kit put 13:1 slivers on
+the bottle neck, because the neck wrapped the full 128px width across its 8cm
+circumference while getting only 8 texture rows for 6.6cm of height.
+
+The fix is a single contract in `tools/geometry.py`:
+
+- **V advances with arc length** along the profile, so a centimetre of surface
+  always gets the same number of rows, whether it is neck or belly.
+- **U spans `r / r_max`** of the texture width, so a narrow ring does not smear
+  the full width across a small circumference.
+- The atlas rectangles are then **computed from the geometry**, not placed by
+  hand. `textures.py` paints into whatever rows `geometry.py` derives.
+
+The price is slight shear across the two shoulder rings, where the surface is
+genuinely converging. An extra ring there softens it.
+
+Run the audit before shipping anything:
+
+```bash
+cd tools && python check_density.py
+```
+
+It fails if any face deviates more than 1.15 from square texels, or if the
+per-prop densities drift more than 1.15 apart across the bundle. It is what
+caught the cigarette pack's side faces being mapped to a square rectangle for
+a 23x88mm surface.
+
 ## UV atlases
 
 Each texture function in `tools/textures.py` documents its atlas rectangles in
-its docstring. Those rectangles are a **contract** with `tools/blender_build.py`,
-which writes UVs explicitly rather than calling smart-unwrap. Change one, change
-both - automatic unwrapping scatters islands and breaks the shared atlas.
+its docstring, and reads the actual numbers from `tools/geometry.py`. Those
+rectangles are a **contract** with `tools/blender_build.py`, which writes UVs
+explicitly rather than calling smart-unwrap - automatic unwrapping scatters
+islands and breaks the shared atlas.
+
+Note: the module is named `geometry.py`, not `profile.py`. Python ships a
+stdlib module called `profile`, and Blender had already imported it, so the
+shadowing import silently resolved to the wrong module.
 
 ## Deliberate non-goals
 

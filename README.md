@@ -11,9 +11,9 @@ than a low-poly model with a blurry texture stretched over it.
 
 | Prop | Tris | Texture |
 |---|---|---|
-| `SM_Can_Food_01` | 48 | 64x64 |
-| `SM_Bottle_Vodka_01` | 200 | 128x128 |
-| `SM_Pack_Cigarettes_01` | 12 | 64x64 |
+| `SM_Can_Food_01` | 48 | 128x128 |
+| `SM_Bottle_Vodka_01` | 264 | 128x256 |
+| `SM_Pack_Cigarettes_01` | 12 | 128x128 |
 
 Exported as `.fbx` (embedded textures) and `.glb`, real-world scale, pivots at
 base centre, +Z up.
@@ -23,10 +23,14 @@ base centre, +Z up.
 A 64x64 texture is not automatically "PSX". Four things do the work, and all of
 them are enforced in code rather than left to taste:
 
+- **Square texels everywhere**, verified by `tools/check_density.py`
 - **A fixed 32-colour CLUT** shared by every prop in the bundle
 - **15-bit colour** - every channel a multiple of 8, like the PS1 framebuffer
 - **Ordered Bayer dithering** instead of smooth gradients
 - **Point sampling** (`Closest`) with no mipmaps
+
+The first of those does the heavy lifting. A curved surface unwrapped carelessly
+smears texels into slivers, and no amount of palette discipline hides it.
 
 Full rules in [docs/STYLE.md](docs/STYLE.md).
 
@@ -37,6 +41,7 @@ lists so they hit the texture atlas exactly.
 
 ```bash
 cd tools
+python check_density.py     # audit texel density; must pass before shipping
 python textures.py          # writes assets/textures/*.png
 ```
 
@@ -53,6 +58,8 @@ editor and run it there - it has no dependency on the bridge.
 ## Layout
 
 ```
+tools/geometry.py       profiles, texel density, derived UV atlas rectangles
+tools/check_density.py  audit: fails on non-square texels
 tools/palette.py        32-colour CLUT, 15-bit quantise, Bayer dither
 tools/texgen.py         noise, grime, scuffs, pseudo-glyph wordmarks
 tools/textures.py       the three prop textures + their UV atlas contracts
