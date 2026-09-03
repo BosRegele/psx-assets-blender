@@ -35,7 +35,7 @@ def arc_rows(profile, dens):
 # looking chunkier than the next on a shelf.
 
 # --- vodka bottle ----------------------------------------------------------
-BOTTLE_TEX = (128, 256)          # portrait: the bottle is taller than round
+BOTTLE_TEX = (256, 512)          # portrait: the bottle is taller than round
 BOTTLE_R = 0.042
 BOTTLE_PROFILE = [               # (radius, z), cap first, base last
     (0.000, 0.300), (0.016, 0.300), (0.016, 0.282), (0.013, 0.278),
@@ -58,7 +58,7 @@ def band(name, rows=None):
 
 
 # --- canned food -----------------------------------------------------------
-CAN_TEX = (128, 128)
+CAN_TEX = (256, 256)
 CAN_R, CAN_H = 0.037, 0.102
 CAN_DENSITY = density(CAN_TEX[0], CAN_R)
 CAN_BODY_ROWS = int(round(CAN_H * CAN_DENSITY))     # label band height
@@ -67,7 +67,7 @@ CAN_DISC_Y = CAN_BODY_ROWS + CAN_DISC_R + 2
 
 # --- cigarette pack --------------------------------------------------------
 # Matched to the can's density so the two read as the same material scale.
-PACK_TEX = (128, 128)
+PACK_TEX = (256, 256)
 PACK_W, PACK_D, PACK_H = 0.055, 0.023, 0.088
 PACK_DENSITY = CAN_DENSITY
 _pw = int(round(PACK_W * PACK_DENSITY))

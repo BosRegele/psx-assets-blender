@@ -9,13 +9,13 @@ comes from every prop looking like it was made for the *same game*.
 | Rule | Value | Why |
 |---|---|---|
 | Triangle budget | 120-500 tris per prop | PS1 pushed ~180k tris/sec total |
-| Texture size | 128x128, or 128x256 for tall props | matches 1MB VRAM budgets |
+| Texture size | 256x256, or 256x512 for tall props | ~1mm per texel at prop scale |
 | Palette | fixed 32-colour CLUT | see `palette.png` |
 | Colour depth | 15-bit, every channel a multiple of 8 | PS1 framebuffer was 5 bits/channel |
 | Dither | ordered Bayer 4x4, strength 20 | the single strongest era cue |
 | Filtering | `Closest` / point sampling, no mipmaps | bilinear instantly kills the look |
 | Shading | flat faces, roughness 1.0, specular 0, metallic 0 | no PBR anywhere |
-| Texel density | ~485-551 px/m, square texels on every prop | non-square texels are the #1 tell of an amateur asset |
+| Texel density | ~970-1101 px/m, square texels on every prop | non-square texels are the #1 tell of an amateur asset |
 | Scale | real-world metres | can 102mm, bottle 300mm, pack 88mm |
 | Pivot | base centre, +Z up | drops onto a floor without fixup |
 
@@ -43,9 +43,29 @@ import time.
    produces flat, lifeless texels.
 2. Grime is not optional. Every surface gets an fbm multiply pass. Clean
    surfaces read as "untextured", not as "new".
-3. Text is drawn as blocky glyph rectangles, never a real typeface. At 64px a
-   font turns to mush; varied glyph widths with genuine word gaps read as
-   language at play distance. It also keeps every label trademark-free.
+3. Labels use **real type**, set with a real typeface and rendered one-bit.
+   `d.fontmode = "1"` is the whole trick: PIL antialiases TTF by default, and
+   those grey edge pixels quantise into mud against a 32-colour CLUT. One-bit
+   rendering puts every glyph edge on a texel boundary.
+
+   Two constraints keep it legible on a curved surface:
+
+   - **Cap type at ~28% of the texture width.** A cylinder presents only about
+     100 degrees of arc legibly; wider type wraps out of sight and reads as a
+     truncated word however crisp the glyphs are.
+   - **Size from the box, never a fixed point size** (`texgen.fit`), so a
+     density change rescales the type with it.
+
+   Brand names are invented, with numeric suffixes and generic product nouns.
+   Real trademarks mean a rejected listing.
+
+4. Noise octaves are **block sizes in pixels**, not a subdivision count. Scale
+   them with the texture and keep the coarsest well under a tenth of the width -
+   it carries the most amplitude and turns into damp-looking blotches otherwise.
+
+5. Scuffs stay inside their own atlas band (`scratches(..., ybox=...)`). Glass
+   flecks bleeding onto a paper label is exactly the sort of detail that reads
+   as sloppy at close range.
 4. One vertical specular column is what makes unlit glass read as glass.
 
 ## Texel density: the rule that matters most

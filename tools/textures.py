@@ -9,57 +9,83 @@ import numpy as np
 from PIL import ImageDraw
 import palette, texgen as T, geometry as P
 
+# Fictional brands. Numeric suffixes and generic product nouns keep every label
+# clear of real trademarks, which is a hard requirement for marketplace listing.
+BRANDS = {
+    "vodka": ("ЗАРЯ-59", "ВОДКА",
+              ("ОСОБАЯ ОЧИСТКА",
+               "0.5 Л   40% ОБ.")),
+    "can":   ("ТУШЁНКА", "ГОВЯДИНА",
+              ("ТУ 9216-14", "МАССА НЕТТО 525 Г")),
+    "pack":  ("ДОЗОР", "СИГАРЕТЫ",
+              ("20 ШТ", "1 КЛАСС")),
+}
+FRONT = 0.75   # u of the camera-facing side, so brands read in the default view
+
 
 def can():
-    """Body label occupies rows 0..CAN_BODY_ROWS and wraps 360 degrees.
-    Lid and base discs sit below it at their true texel radius. All label
-    furniture is proportional to the band so it survives a density change."""
+    """Body label wraps 360 degrees over rows 0..CAN_BODY_ROWS; lid and base
+    discs sit below at their true texel radius."""
     w, h = P.CAN_TEX
     body = P.CAN_BODY_ROWS
     y = lambda f: int(body * f)
-    tin = T.from_ramp(0.35 + 0.5 * T.fbm(h, w, seed=10, octaves=(48, 24, 12)), "tin")
-    rgb = T.grime(tin, T.fbm(h, w, seed=11), 0.30)
+    cx = int(w * FRONT)
+    brand, sub, lines = BRANDS["can"]
 
-    paper = T.from_ramp(0.55 + 0.4 * T.fbm(h, w, seed=12, octaves=(48, 24, 12)), "paper")
-    paper = T.grime(paper, T.fbm(h, w, seed=13), 0.5)
+    tin = T.from_ramp(0.35 + 0.5 * T.fbm(h, w, seed=10, octaves=(28, 14, 7, 3)), "tin")
+    rgb = T.grime(tin, T.fbm(h, w, seed=11, octaves=(32, 16, 8, 4)), 0.30)
+    paper = T.from_ramp(0.66 + 0.24 * T.fbm(h, w, seed=12, octaves=(9, 5, 3)), "paper")
+    paper = T.grime(paper, T.fbm(h, w, seed=13, octaves=(14, 7, 3)), 0.24)
     mask = np.zeros((h, w), dtype=bool)
     mask[0:body] = True
     rgb = np.where(mask[..., None], paper, rgb)
 
     img = T.to_pil(rgb)
     d = ImageDraw.Draw(img)
-    d.rectangle([0, 0, w - 1, y(0.09)], fill=T.px("olive", 1))
-    T.wordmark(d, (5, y(0.13), w - 5, y(0.35)), seed=21, colour=T.px("void", 0))
-    d.rectangle([0, y(0.40), w - 1, y(0.46)], fill=T.px("red", 1))
-    T.smallprint(d, (8, y(0.53), w - 9, y(0.93)), T.px("paper", 0), seed=22, gap=4)
-    d.rectangle([0, body - 3, w - 1, body - 1], fill=T.px("olive", 0))
+    d.rectangle([0, 0, w - 1, y(0.10)], fill=T.px("olive", 1))
+    T.text(d, (cx, y(0.15)), brand,
+           T.fit("heavy", brand, int(w * 0.27), y(0.19)), T.px("void", 0),
+           centre=True, track=1)
+    d.rectangle([0, y(0.43), w - 1, y(0.52)], fill=T.px("red", 1))
+    T.text(d, (cx, y(0.455)), sub,
+           T.fit("display", sub, int(w * 0.21), y(0.06)), T.px("paper", 4),
+           centre=True, track=1)
+    ly = y(0.60)
+    for line in lines:
+        f = T.fit("display", line, int(w * 0.24), y(0.08))
+        T.text(d, (cx, ly), line, f, T.px("void", 1), centre=True, track=1)
+        ly += f.size + 3
+    T.smallprint(d, (int(w * 0.10), y(0.80), int(w * 0.34), y(0.94)),
+                 T.px("paper", 1), seed=22, gap=4)
+    d.rectangle([0, body - 4, w - 1, body - 1], fill=T.px("olive", 0))
 
     r, cy = P.CAN_DISC_R, P.CAN_DISC_Y
-    for cx, shade in ((r + 2, 3), (3 * r + 6, 1)):
-        d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=T.px("tin", shade))
-        for rr in range(r - 3, 1, -4):
-            d.ellipse([cx - rr, cy - rr, cx + rr, cy + rr],
+    for dx, shade in ((r + 2, 3), (3 * r + 6, 1)):
+        d.ellipse([dx - r, cy - r, dx + r, cy + r], fill=T.px("tin", shade))
+        for rr in range(r - 4, 2, -5):
+            d.ellipse([dx - rr, cy - rr, dx + rr, cy + rr],
                       outline=T.px("tin", max(0, shade - 1)))
 
-    T.scratches(img, 70, T.px("tin", 4), seed=23, length=6)
-    T.scratches(img, 24, T.px("rust", 1), seed=24, length=4)
+    T.scratches(img, 70, T.px("paper", 4), seed=23, length=7, ybox=(0, body))
+    T.scratches(img, 90, T.px("tin", 4), seed=25, length=9, ybox=(body, h))
+    T.scratches(img, 40, T.px("rust", 1), seed=24, length=6, ybox=(body, h))
     return np.asarray(img, dtype=np.float32)
 
 
 def bottle():
-    """Bands come from profile.band(); V is arc length, U is radius-scaled."""
+    """Bands come from geometry.band(); V is arc length, U is radius-scaled."""
     w, h = P.BOTTLE_TEX
     cap, neck, shoulder = P.band("cap"), P.band("neck"), P.band("shoulder")
     label, lower = P.band("label"), P.band("lower")
+    cx = int(w * FRONT)
+    brand, sub, lines = BRANDS["vodka"]
 
-    # wide tonal range plus vertical runs, so the dither breaks up instead
-    # of settling into one regular pattern across the whole neck
-    base = 0.15 + 0.85 * T.fbm(h, w, seed=30, octaves=(64, 32, 12, 5))
-    base = np.clip(base + 0.28 * T.streaks(h, w, 16, seed=37), 0, 1)
-    glass = T.from_ramp(base, "glass")
-    rgb = T.grime(glass, T.fbm(h, w, seed=31), 0.35)
-    lab = T.from_ramp(0.5 + 0.45 * T.fbm(h, w, seed=32, octaves=(48, 24, 12)), "paper")
-    lab = T.grime(lab, T.fbm(h, w, seed=33), 0.45)
+    base = 0.22 + 0.62 * T.fbm(h, w, seed=30, octaves=(16, 8, 4, 2))
+    base = np.clip(base + 0.28 * T.streaks(h, w, 30, seed=37, width=(1, 7)), 0, 1)
+    rgb = T.grime(T.from_ramp(base, "glass"),
+                  T.fbm(h, w, seed=31, octaves=(32, 16, 8, 4)), 0.35)
+    lab = T.from_ramp(0.66 + 0.24 * T.fbm(h, w, seed=32, octaves=(9, 5, 3)), "paper")
+    lab = T.grime(lab, T.fbm(h, w, seed=33, octaves=(14, 7, 3)), 0.22)
     mask = np.zeros((h, w), dtype=bool)
     mask[label[0]:label[1]] = True
     rgb = np.where(mask[..., None], lab, rgb)
@@ -67,31 +93,39 @@ def bottle():
     img = T.to_pil(rgb)
     d = ImageDraw.Draw(img)
 
-    # foil cap, knurled. U scale on the cap is 0.38, so the ribs are drawn at
-    # 0.38 of the width and still land at the right world-space pitch.
     d.rectangle([0, cap[0], w - 1, cap[1] - 1], fill=T.px("red", 2))
-    for x in range(0, w, 3):
-        d.line([(x, cap[0] + 1), (x, cap[1] - 3)], fill=T.px("red", 1))
-    d.rectangle([0, cap[1] - 3, w - 1, cap[1] - 1], fill=T.px("red", 0))
+    for x in range(0, w, 5):
+        d.line([(x, cap[0] + 1), (x, cap[1] - 5)], fill=T.px("red", 1))
+    d.rectangle([0, cap[1] - 5, w - 1, cap[1] - 1], fill=T.px("red", 0))
 
-    # one vertical specular column per glass band - the only cue that reads
-    # as glass with no specular shading at all
     for y0, y1 in (neck, shoulder, lower):
-        for x in range(13, 20):
+        for x in range(26, 40):
             d.line([(x, y0), (x, y1 - 1)], fill=T.px("glass", 3))
-        d.line([(16, y0), (16, y1 - 1)], fill=T.px("concrete", 1))
+        d.line([(32, y0), (32, y1 - 1)], fill=T.px("concrete", 1))
 
-    # label furniture, sized off the band so it scales with the geometry
     lh = label[1] - label[0]
-    d.rectangle([0, label[0], w - 1, label[0] + 2], fill=T.px("red", 1))
-    d.rectangle([0, label[1] - 3, w - 1, label[1] - 1], fill=T.px("red", 1))
-    d.rectangle([0, label[0] + 8, w - 1, label[0] + 10], fill=T.px("olive", 1))
-    T.wordmark(d, (8, label[0] + 14, w - 8, label[0] + lh // 2 + 4),
-               seed=34, rows=1, colour=T.px("red", 0))
-    T.smallprint(d, (12, label[0] + lh // 2 + 8, w - 12, label[1] - 6),
-                 T.px("paper", 0), seed=35, gap=3)
+    L = lambda f: label[0] + int(lh * f)
+    d.rectangle([0, label[0], w - 1, L(0.04)], fill=T.px("red", 1))
+    d.rectangle([0, L(0.96), w - 1, label[1] - 1], fill=T.px("red", 1))
+    # Type is capped at 28% of the texture width. A cylinder only presents
+    # about 100 degrees of arc legibly; anything wider wraps out of sight and
+    # reads as a truncated word no matter how crisp the glyphs are.
+    T.text(d, (cx, L(0.09)), brand,
+           T.fit("heavy", brand, int(w * 0.28), int(lh * 0.25)), T.px("red", 0),
+           centre=True, track=2)
+    d.rectangle([int(w * 0.66), L(0.40), int(w * 0.84), L(0.425)], fill=T.px("olive", 1))
+    T.text(d, (cx, L(0.48)), sub,
+           T.fit("display", sub, int(w * 0.20), int(lh * 0.15)), T.px("void", 1),
+           centre=True, track=3)
+    ly = L(0.70)
+    for line in lines:
+        f = T.fit("display", line, int(w * 0.24), int(lh * 0.10))
+        T.text(d, (cx, ly), line, f, T.px("void", 1), centre=True, track=1)
+        ly += f.size + 3
 
-    T.scratches(img, 70, T.px("glass", 3), seed=36, length=6)
+    for i, bandbox in enumerate((neck, shoulder, lower)):
+        T.scratches(img, 70, T.px("glass", 3), seed=36 + i, length=10, ybox=bandbox)
+    T.scratches(img, 30, T.px("paper", 4), seed=39, length=6, ybox=label)
     return np.asarray(img, dtype=np.float32)
 
 
@@ -99,7 +133,7 @@ def pack():
     """Six faces, each rect at its true aspect ratio; see geometry.PACK_ATLAS."""
     w, h = P.PACK_TEX
     A = P.PACK_ATLAS
-    card = T.from_ramp(0.45 + 0.45 * T.fbm(h, w, seed=40, octaves=(48, 24, 12)), "paper")
+    card = T.from_ramp(0.52 + 0.30 * T.fbm(h, w, seed=40, octaves=(9, 5, 3)), "paper")
     rgb = T.grime(card, T.fbm(h, w, seed=41), 0.40)
     img = T.to_pil(rgb)
     d = ImageDraw.Draw(img)
@@ -107,12 +141,21 @@ def pack():
     fx0, fy0, fx1, fy1 = A["front"]
     fh = fy1 - fy0
     f = lambda t: fy0 + int(fh * t)
+    brand, sub, lines = BRANDS["pack"]
+    fw, cx = fx1 - fx0, fx0 + (fx1 - fx0) // 2
     d.rectangle([fx0, fy0, fx1 - 1, fy1 - 1], fill=T.px("olive", 1))
-    T.wordmark(d, (fx0 + 3, f(0.08), fx1 - 3, f(0.30)), seed=42,
-               colour=T.px("paper", 4))
-    d.rectangle([fx0, f(0.36), fx1 - 1, f(0.45)], fill=T.px("red", 2))
-    T.smallprint(d, (fx0 + 4, f(0.52), fx1 - 4, f(0.74)), T.px("olive", 3),
-                 seed=43, gap=3)
+    T.text(d, (cx, f(0.10)), brand,
+           T.fit("heavy", brand, int(fw * 0.82), int(fh * 0.16)),
+           T.px("paper", 4), centre=True, track=1)
+    T.text(d, (cx, f(0.29)), sub,
+           T.fit("display", sub, int(fw * 0.76), int(fh * 0.09)),
+           T.px("paper", 3), centre=True, track=1)
+    d.rectangle([fx0, f(0.42), fx1 - 1, f(0.50)], fill=T.px("red", 2))
+    ly = f(0.56)
+    for line in lines:
+        ft = T.fit("display", line, int(fw * 0.55), int(fh * 0.08))
+        T.text(d, (cx, ly), line, ft, T.px("olive", 3), centre=True, track=1)
+        ly += ft.size + 2
     d.rectangle([fx0, f(0.84), fx1 - 1, fy1 - 1], fill=T.px("void", 1))
     T.smallprint(d, (fx0 + 3, f(0.87), fx1 - 4, fy1 - 3), T.px("paper", 2),
                  seed=44, gap=2)
