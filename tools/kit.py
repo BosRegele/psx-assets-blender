@@ -86,13 +86,20 @@ class Box:
     along (x, y, z). `surfaces` maps face names to painter keys; a bare string
     applies to every face."""
 
-    __slots__ = ("name", "pos", "size", "surfaces", "rot")
+    __slots__ = ("name", "pos", "size", "surfaces", "rot", "pivot")
 
-    def __init__(self, name, pos, size, surfaces, rot=None):
+    def __init__(self, name, pos, size, surfaces, rot=None, pivot=None):
+        """`pivot` is the point the part rotates about, in the prop's own
+        space. It defaults to the part's centroid, which is right for a slab
+        lying at an angle and wrong for anything hinged: a hammer claw or a
+        plier arm has to swing about where it joins, or both ends move and the
+        part floats free of what it is attached to.
+        """
         self.name = name
         self.pos = tuple(float(v) for v in pos)
         self.size = tuple(float(v) for v in size)
         self.rot = tuple(rot) if rot else None
+        self.pivot = tuple(float(v) for v in pivot) if pivot else None
         self.surfaces = ({f: surfaces for f in FACES}
                          if isinstance(surfaces, str) else dict(surfaces))
 
@@ -111,7 +118,8 @@ class Box:
         v = [(x, y, z), (x + w, y, z), (x + w, y + d, z), (x, y + d, z),
              (x, y, z + h), (x + w, y, z + h), (x + w, y + d, z + h),
              (x, y + d, z + h)]
-        return _rotate(v, (x + w / 2, y + d / 2, z + h / 2), self.rot)
+        return _rotate(v, self.pivot or (x + w / 2, y + d / 2, z + h / 2),
+                       self.rot)
 
     # local vertex indices per face, wound outward
     QUADS = {"front": (0, 1, 5, 4), "back": (2, 3, 7, 6),
@@ -123,12 +131,12 @@ class Cylinder:
     """An N-gon prism. `pos` is the base centre. Packs as one wrap band plus
     two cap squares, all at the same density as the boxes around it."""
 
-    __slots__ = ("name", "pos", "r", "r2", "h", "n", "surfaces", "rot")
+    __slots__ = ("name", "pos", "r", "r2", "h", "n", "surfaces", "rot", "pivot")
 
     PARTS = ("side", "top", "bottom")
 
     def __init__(self, name, pos, radius, height, surfaces, n=10,
-                 r2=None, rot=None, centre=False):
+                 r2=None, rot=None, centre=False, pivot=None):
         """`r2` gives the top radius: a frustum, which is what turns a blocky
         cylinder into a bullet, a funnel or a tapered mug.
 
@@ -145,6 +153,7 @@ class Cylinder:
         self.r, self.h, self.n = float(radius), float(height), int(n)
         self.r2 = float(r2) if r2 is not None else float(radius)
         self.rot = tuple(rot) if rot else None
+        self.pivot = tuple(float(v) for v in pivot) if pivot else None
         self.surfaces = ({p: surfaces for p in self.PARTS}
                          if isinstance(surfaces, str) else dict(surfaces))
 
@@ -167,16 +176,18 @@ class Sphere:
     across the equator, which is where they are actually seen.
     """
 
-    __slots__ = ("name", "pos", "r", "seg", "ring", "surfaces", "rot", "squash")
+    __slots__ = ("name", "pos", "r", "seg", "ring", "surfaces", "rot",
+                 "squash", "pivot")
     PARTS = ("skin",)
 
     def __init__(self, name, pos, radius, surfaces, seg=10, ring=6,
-                 rot=None, squash=1.0):
+                 rot=None, squash=1.0, pivot=None):
         self.name = name
         self.pos = tuple(float(v) for v in pos)
         self.r, self.seg, self.ring = float(radius), int(seg), int(ring)
         self.squash = float(squash)      # <1 flattens it into a pebble
         self.rot = tuple(rot) if rot else None
+        self.pivot = tuple(float(v) for v in pivot) if pivot else None
         self.surfaces = ({"skin": surfaces} if isinstance(surfaces, str)
                          else dict(surfaces))
 
@@ -313,7 +324,7 @@ def build(boxes, tier):
                     local.append((cx + r * math.sin(phi) * math.cos(th),
                                   cy + r * math.sin(phi) * math.sin(th),
                                   cz + r * math.cos(phi) * b.squash))
-            local = _rotate(local, b.pos, b.rot)
+            local = _rotate(local, b.pivot or b.pos, b.rot)
             verts.extend(local)
             idx = lambda j, i: base + j * (seg + 1) + i
             for j in range(ring):
@@ -344,7 +355,7 @@ def build(boxes, tier):
                     a = TAU * i / n
                     local.append((cx + rr * math.cos(a), cy + rr * math.sin(a), z))
             local += [(cx, cy, cz), (cx, cy, cz + hh)]
-            local = _rotate(local, (cx, cy, cz + hh / 2), b.rot)
+            local = _rotate(local, b.pivot or (cx, cy, cz + hh / 2), b.rot)
             verts.extend(local)
             bot_c, top_c = base + 2 * n, base + 2 * n + 1
             skey = (HIDDEN_KEY if b.surfaces["side"] in FILLERS
@@ -393,6 +404,63 @@ MIN_MEANINGFUL_PX = 4
 _FACE_AXIS = {"front": (1, 0, (0, 2)), "back": (1, 1, (0, 2)),
               "left": (0, 0, (1, 2)), "right": (0, 1, (1, 2)),
               "bottom": (2, 0, (0, 1)), "top": (2, 1, (0, 1))}
+
+
+def part_bounds(b):
+    """World-space AABB of one part, computed from its actual vertices so
+    rotation and pivots are accounted for."""
+    if isinstance(b, Box):
+        v = b.verts()
+    elif isinstance(b, Sphere):
+        r = b.r
+        cx, cy, cz = b.pos
+        return (cx - r, cy - r, cz - r * b.squash,
+                cx + r, cy + r, cz + r * b.squash)
+    else:
+        cx, cy, cz = b.pos
+        r = max(b.r, b.r2)
+        v = _rotate([(cx + dx * r, cy + dy * r, cz + dz * b.h)
+                     for dx in (-1, 1) for dy in (-1, 1) for dz in (0, 1)],
+                    b.pivot or (cx, cy, cz + b.h / 2), b.rot)
+    xs = [q[0] for q in v]; ys = [q[1] for q in v]; zs = [q[2] for q in v]
+    return min(xs), min(ys), min(zs), max(xs), max(ys), max(zs)
+
+
+def check_connected(parts, gap=0.004):
+    """Parts that touch nothing else in the prop.
+
+    A detached piece is the single most common way a box composite goes wrong,
+    and it is invisible in a parts list. AABB adjacency is coarse - two parts
+    can share a bounding box without touching - so this under-reports rather
+    than crying wolf, and anything it does flag is genuinely floating.
+    """
+    if len(parts) < 2:
+        return []
+    bounds = [part_bounds(b) for b in parts]
+
+    def touches(a, b):
+        return all(min(a[i + 3], b[i + 3]) - max(a[i], b[i]) > -gap
+                   for i in range(3))
+
+    parent = list(range(len(parts)))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for i in range(len(parts)):
+        for j in range(i + 1, len(parts)):
+            if touches(bounds[i], bounds[j]):
+                parent[find(i)] = find(j)
+    groups = {}
+    for i in range(len(parts)):
+        groups.setdefault(find(i), []).append(parts[i].name)
+    if len(groups) == 1:
+        return []
+    biggest = max(groups.values(), key=len)
+    return [n for g in groups.values() if g is not biggest for n in g]
 
 
 def footprint(boxes):

@@ -259,7 +259,7 @@ def gasmask():
             (0.065, 0.012, 0.055), "glass_lens"),
         Box("lensR", (0.015, -D / 2 - 0.008, H - 0.10),
             (0.065, 0.012, 0.055), "glass_lens"),
-        Cylinder("filter", (0, -D / 2 - 0.055, 0.03), 0.045, 0.09, "olive_metal", n=10),
+        Cylinder("filter", (0, -D / 2 - 0.040, 0.03), 0.045, 0.09, "olive_metal", n=10),
         Box("strapL", (-W / 2 - 0.02, -0.02, H - 0.06), (0.02, 0.10, 0.03), "canvas"),
         Box("strapR", (W / 2, -0.02, H - 0.06), (0.02, 0.10, 0.03), "canvas"),
     ]
@@ -300,7 +300,7 @@ def rifle():
         Box("handguard", (0.18, -0.032, 0.004), (0.24, 0.064, 0.075), "wood_planks"),
         Box("barrel", (0.42, -0.016, 0.028), (0.22, 0.032, 0.032), "steel"),
         Box("mag", (-0.01, -0.024, -0.170), (0.080, 0.048, 0.175), "steel_worn"),
-        Box("sight", (0.31, -0.014, 0.090), (0.036, 0.028, 0.036), "steel"),
+        Box("sight", (0.30, -0.014, 0.070), (0.036, 0.028, 0.036), "steel"),
     ]
 
 
@@ -679,7 +679,7 @@ def ammo_belt():
                           n=8, r2=0.0044, rot=(90 + tilt, 0, 0), centre=True))
         p.append(Cylinder(f"tip{i}", (x, -0.030, 0.028), 0.0044, 0.018, "copper",
                           n=8, r2=0.0014, rot=(90 + tilt, 0, 0), centre=True))
-        p.append(Box(f"link{i}", (x - 0.014, 0.010, 0.014), (0.028, 0.026, 0.012),
+        p.append(Box(f"link{i}", (x - 0.019, 0.010, 0.014), (0.038, 0.026, 0.012),
                      "gunmetal", rot=(tilt, 0, 0)))
     return "prop", p
 
@@ -705,18 +705,18 @@ def rifle_v2():
         Box("comb", (-0.33, -0.022, 0.066), (0.15, 0.044, 0.026), "wood"),
         Box("grip", (-0.10, -0.023, -0.112), (0.050, 0.046, 0.118), "wood",
             rot=(0, -14, 0)),
-        Cylinder("handguard", (0.28, 0, 0.038), 0.028, 0.20, "wood", n=10,
+        Cylinder("handguard", (0.255, 0, 0.038), 0.028, 0.19, "wood", n=10,
                  rot=(0, 90, 0), centre=True),
-        Cylinder("barrel", (0.50, 0, 0.038), 0.011, 0.16, "gunmetal", n=8,
+        Cylinder("barrel", (0.435, 0, 0.038), 0.011, 0.18, "gunmetal", n=8,
                  r2=0.009, rot=(0, 90, 0), centre=True),
-        Cylinder("gastube", (0.34, 0, 0.070), 0.008, 0.16, "gunmetal", n=6,
+        Cylinder("gastube", (0.30, 0, 0.068), 0.008, 0.18, "gunmetal", n=6,
                  rot=(0, 90, 0), centre=True),
-        Cylinder("muzzle", (0.66, 0, 0.038), 0.013, 0.030, "gunmetal", n=8,
+        Cylinder("muzzle", (0.535, 0, 0.038), 0.013, 0.032, "gunmetal", n=8,
                  r2=0.011, rot=(0, 90, 0), centre=True),
         Box("mag", (-0.02, -0.022, -0.175), (0.072, 0.044, 0.170), "gunmetal",
             rot=(0, 12, 0)),
-        Cylinder("rearsight", (-0.10, 0, 0.088), 0.010, 0.022, "gunmetal", n=6),
-        Cylinder("frontsight", (0.60, 0, 0.056), 0.008, 0.026, "gunmetal", n=6),
+        Cylinder("rearsight", (-0.10, 0, 0.072), 0.010, 0.024, "gunmetal", n=6),
+        Cylinder("frontsight", (0.50, 0, 0.042), 0.008, 0.026, "gunmetal", n=6),
     ]
 
 
@@ -844,24 +844,30 @@ def locker_open():
             {"front": "steel_door", "back": "steel", "left": "steel",
              "right": "steel", "top": "steel", "bottom": "steel"}),
         # left bay's door, hinged on the outer jamb and swung open
-        Box("door_open", (-W / 2 - 0.01, -D / 2 - 0.40, 0.10),
-            (0.04, hw, H - 0.14),
+        Box("hinge_t", (-W / 2 - 0.012, -D / 2 - 0.012, H - 0.34),
+            (0.030, 0.044, 0.070), "chrome"),
+        Box("hinge_b", (-W / 2 - 0.012, -D / 2 - 0.012, 0.22),
+            (0.030, 0.030, 0.070), "chrome"),
+        # A door hinges at its edge. Rotating it about its own centre swung
+        # the hinge line away from the jamb and left the whole leaf floating.
+        Box("door_open", (-W / 2 - 0.012, -D / 2 - 0.38, 0.10),
+            (0.040, 0.40, H - 0.14),
             {"front": "steel_panel", "back": "steel_door", "left": "steel_door",
              "right": "steel_panel", "top": "steel", "bottom": "steel"},
-            rot=(0, 0, -16)),
+            rot=(0, 0, -16), pivot=(-W / 2 + 0.008, -D / 2 + 0.02, 0.9)),
         # contents of the open bay
         Cylinder("rail", (-W / 4, 0, H - 0.36), 0.010, hw - 0.02, "chrome",
-                 n=6, rot=(0, 90, 0), centre=True),
-        Box("hanger_bar", (-W / 4 - 0.12, -0.010, H - 0.52),
-            (0.24, 0.010, 0.010), "chrome"),
-        Cylinder("hanger_hook", (-W / 4, 0, H - 0.51), 0.006, 0.085, "chrome",
+                 n=6, rot=(0, 90, 0), centre=True, pivot=(-W / 4, 0, H - 0.36)),
+        Box("hanger_bar", (-W / 4 - 0.12, -0.010, H - 0.455),
+            (0.24, 0.014, 0.012), "chrome"),
+        Cylinder("hanger_hook", (-W / 4, 0, H - 0.45), 0.006, 0.096, "chrome",
                  n=6),
-        Box("coat_shoulder", (-W / 4 - 0.15, -0.075, H - 0.64),
-            (0.30, 0.15, 0.12), "coat"),
-        Box("coat", (-W / 4 - 0.13, -0.068, H - 1.16), (0.26, 0.14, 0.54),
+        Box("coat_shoulder", (-W / 4 - 0.15, -0.075, H - 0.565),
+            (0.30, 0.15, 0.13), "coat"),
+        Box("coat", (-W / 4 - 0.13, -0.068, H - 1.09), (0.26, 0.14, 0.53),
             "coat"),
-        Box("coat_hem", (-W / 4 - 0.14, -0.070, H - 1.22),
-            (0.28, 0.145, 0.07), "coat", rot=(0, 0, 5)),
+        Box("coat_hem", (-W / 4 - 0.14, -0.070, H - 1.14),
+            (0.28, 0.145, 0.08), "coat", rot=(0, 0, 5)),
         Box("boots", (-W / 4 - 0.11, -0.06, 0.08), (0.22, 0.13, 0.13), "rubber"),
     ]
     return "furniture", p
@@ -891,48 +897,72 @@ REGISTRY.update({
 
 
 def hammer():
-    """Head at the top of the handle, not the middle of it. Cylinder pos is
-    the base unless centre=True, and treating it as a centre put the head
-    halfway down the shaft."""
-    L = 0.300
-    return "prop", [
-        Cylinder("handle", (0, 0, 0), 0.011, L, "wood", n=8, r2=0.015),
-        Box("head", (-0.026, -0.019, L - 0.010), (0.052, 0.038, 0.038),
-            "gunmetal"),
-        Box("peen", (0.026, -0.013, L - 0.004), (0.040, 0.026, 0.026),
-            "gunmetal"),
-        Box("claw", (-0.062, -0.014, L - 0.006), (0.038, 0.028, 0.028),
-            "gunmetal", rot=(0, -22, 0)),
-    ]
+    """Claw hammer.
 
+    The claw is a CHAIN: each segment starts where the last one ended and
+    hinges about that joint. Rotating several segments about one shared pivot
+    at different angles fans them out instead of curling them, which is what
+    left two blades hanging beside the head.
+    """
+    L, HZ = 0.300, 0.286
+    JX, JZ = -0.026, HZ + 0.020          # where the claw leaves the head
+    p = [
+        Cylinder("handle", (0, 0, 0), 0.011, L, "wood", n=8, r2=0.015),
+        Box("head", (-0.026, -0.019, HZ), (0.052, 0.038, 0.040), "gunmetal"),
+        Box("peen", (0.026, -0.013, HZ + 0.006), (0.042, 0.026, 0.028),
+            "gunmetal"),
+    ]
+    x, z = JX, JZ
+    for i, (ang, ln, th) in enumerate(((-16, 0.024, 0.026),
+                                       (-46, 0.022, 0.022),
+                                       (-88, 0.018, 0.018))):
+        p.append(Box(f"claw{i}", (x - ln, -th / 2, z - th / 2), (ln, th, th),
+                     "gunmetal", rot=(0, ang, 0), pivot=(x, 0, z)))
+        a = math.radians(ang)
+        x, z = x - ln * math.cos(a), z + ln * math.sin(a)
+    return "prop", p
 
 def wrench():
-    """Open-ended spanner: the jaw is what makes it read."""
+    """Open-ended spanner. Both heads hinge about the end of the shaft they
+    are welded to, so the joint stays closed at any angle."""
+    Z = 0.005
     return "prop", [
-        Box("shaft", (-0.100, -0.011, 0), (0.200, 0.022, 0.008), "chrome"),
-        Box("head_a", (-0.128, -0.019, 0), (0.036, 0.038, 0.009), "chrome",
-            rot=(0, 0, 16)),
-        Box("jaw_a", (-0.128, -0.006, 0.0005), (0.022, 0.012, 0.010), "dark",
-            rot=(0, 0, 16)),
-        Box("head_b", (0.092, -0.017, 0), (0.032, 0.034, 0.009), "chrome",
-            rot=(0, 0, -16)),
-        Box("jaw_b", (0.104, -0.005, 0.0005), (0.020, 0.010, 0.010), "dark",
-            rot=(0, 0, -16)),
+        Box("shaft", (-0.100, -0.011, 0), (0.200, 0.022, 0.010), "chrome"),
+        Box("head_a", (-0.142, -0.021, 0), (0.044, 0.042, 0.010), "chrome",
+            rot=(0, 0, 15), pivot=(-0.098, 0, Z)),
+        Box("slot_a", (-0.142, -0.007, 0.0008), (0.026, 0.014, 0.011), "dark",
+            rot=(0, 0, 15), pivot=(-0.098, 0, Z)),
+        Box("head_b", (0.098, -0.019, 0), (0.040, 0.038, 0.010), "chrome",
+            rot=(0, 0, -15), pivot=(0.098, 0, Z)),
+        Box("slot_b", (0.114, -0.006, 0.0008), (0.024, 0.012, 0.011), "dark",
+            rot=(0, 0, -15), pivot=(0.098, 0, Z)),
     ]
 
 
 def pliers():
+    """Combination pliers. Both arms pivot about the pin, which is the only
+    way the jaws meet and the handles splay from the same point."""
+    PX, PZ = 0.030, 0.010
+    P = (PX, 0, PZ)
     return "prop", [
-        Box("jawL", (0.030, -0.008, 0.004), (0.070, 0.008, 0.010), "chrome",
-            rot=(0, 0, 5)),
-        Box("jawR", (0.030, 0.000, 0.004), (0.070, 0.008, 0.010), "chrome",
-            rot=(0, 0, -5)),
-        Cylinder("pivot", (0.030, 0, 0.009), 0.009, 0.014, "chrome", n=8,
-                 centre=True),
-        Box("gripL", (-0.110, -0.014, 0.004), (0.130, 0.012, 0.010), "red_grip",
-            rot=(0, 0, -9)),
-        Box("gripR", (-0.110, 0.002, 0.004), (0.130, 0.012, 0.010), "red_grip",
-            rot=(0, 0, 9)),
+        Box("jawL", (PX, -0.010, 0.004), (0.072, 0.009, 0.012), "chrome",
+            rot=(0, 0, 7), pivot=P),
+        Box("jawR", (PX, 0.001, 0.004), (0.072, 0.009, 0.012), "chrome",
+            rot=(0, 0, -7), pivot=P),
+        Box("noseL", (PX + 0.060, -0.008, 0.005), (0.030, 0.006, 0.010),
+            "chrome", rot=(0, 0, 11), pivot=P),
+        Box("noseR", (PX + 0.060, 0.002, 0.005), (0.030, 0.006, 0.010),
+            "chrome", rot=(0, 0, -11), pivot=P),
+        Cylinder("pin", (PX, 0, PZ), 0.010, 0.026, "chrome", n=8,
+                 rot=(90, 0, 0), centre=True),
+        Box("gripL", (PX - 0.135, -0.015, 0.004), (0.135, 0.012, 0.012),
+            "red_grip", rot=(0, 0, -11), pivot=P),
+        Box("gripR", (PX - 0.135, 0.003, 0.004), (0.135, 0.012, 0.012),
+            "red_grip", rot=(0, 0, 11), pivot=P),
+        Box("armL", (PX - 0.045, -0.014, 0.004), (0.048, 0.010, 0.012),
+            "chrome", rot=(0, 0, -11), pivot=P),
+        Box("armR", (PX - 0.045, 0.004, 0.004), (0.048, 0.010, 0.012),
+            "chrome", rot=(0, 0, 11), pivot=P),
     ]
 
 
@@ -957,7 +987,7 @@ def tool_board():
                                       (-0.22, 0.38, 0.026, 0.22),
                                       (-0.08, 0.42, 0.034, 0.16))):
         p.append(Box(f"tool{i}", (x, -0.018, z), (w, 0.018, h), "chrome"))
-    p.append(Cylinder("coil", (0.24, -0.02, 0.34), 0.085, 0.020, "rubber",
+    p.append(Cylinder("coil", (0.24, -0.004, 0.34), 0.085, 0.024, "rubber",
                       n=12, rot=(90, 0, 0), centre=True))
     p.append(Box("saw", (0.02, -0.016, 0.10), (0.34, 0.014, 0.090), "chrome",
                  rot=(0, 0, 0)))
@@ -991,31 +1021,29 @@ def radio_valve():
 def headphones():
     """Bakelite cups on a sprung steel arc.
 
-    Two things had to be right. Each segment sits ON the arc rather than being
-    rotated in place - otherwise every one pivots about the same point and the
-    band becomes a star. And the tangent at angle `a` from vertical is reached
-    by rotating -a, not +a: with the sign wrong the segments splay outward
-    instead of following the curve.
+    Three things had to be right. Each segment sits ON the arc rather than
+    being rotated in place, or every one pivots about the same point and the
+    band becomes a star. The tangent at angle `a` is reached by rotating -a,
+    not +a. And the arc has to run far enough round to actually reach the
+    cups - stopping at 64 degrees left a visible gap on both sides.
     """
-    R, CZ = 0.0957, 0.018         # arc radius, and the centre it swings about
-    SPAN, N = 64.0, 9             # degrees either side of vertical
-    CUP_Z, CUP_Y = 0.032, 0.086
+    R, CZ = 0.092, 0.020          # arc radius, and the centre it swings about
+    SPAN, N = 78.0, 11
+    CUP_Y, CUP_Z = 0.089, 0.036
     p = []
     for i in range(N):
         a = math.radians(-SPAN + i * (2 * SPAN / (N - 1)))
         cy, cz = R * math.sin(a), CZ + R * math.cos(a)
-        p.append(Box(f"band{i}", (-0.006, cy - 0.016, cz - 0.005),
-                     (0.012, 0.032, 0.010), "chrome",
+        p.append(Box(f"band{i}", (-0.006, cy - 0.015, cz - 0.005),
+                     (0.012, 0.030, 0.010), "chrome",
                      rot=(-math.degrees(a), 0, 0)))
     for i, sy in enumerate((-1, 1)):
-        p.append(Cylinder(f"cup{i}", (0, sy * CUP_Y, CUP_Z), 0.032, 0.028,
+        p.append(Cylinder(f"cup{i}", (0, sy * CUP_Y, CUP_Z), 0.033, 0.028,
                           "bakelite", n=10, rot=(90, 0, 0), centre=True))
-        p.append(Cylinder(f"pad{i}", (0, sy * (CUP_Y - 0.018), CUP_Z), 0.028,
+        p.append(Cylinder(f"pad{i}", (0, sy * (CUP_Y - 0.019), CUP_Z), 0.029,
                           0.014, "rubber", n=10, rot=(90, 0, 0), centre=True))
-        p.append(Box(f"yoke{i}", (-0.005, sy * CUP_Y - 0.005, CUP_Z + 0.020),
-                     (0.010, 0.010, 0.034), "chrome"))
-    p.append(Cylinder("cord", (0.02, -0.10, 0.006), 0.005, 0.13, "rubber", n=6,
-                      rot=(0, 80, 28), centre=True))
+    p.append(Cylinder("cord", (0.02, -0.105, 0.006), 0.005, 0.13, "rubber",
+                      n=6, rot=(0, 80, 28), centre=True))
     return "prop", p
 
 

@@ -49,6 +49,11 @@ def kit_report():
             offenders += 1
             lines.append(f"  {name} (worst {w:.3f})")
             lines += ["  " + r for r in rows[:3]]
+    loose = sum(len(kit.check_connected(fn()[1])) for fn in props.REGISTRY.values())
+    if loose:
+        lines.append(f"  !! {loose} parts touch nothing else in their prop "
+                     f"- they will render detached")
+        worst = max(worst, 99.0)
     uncovered = sum(len(kit.check_hidden(fn()[1])) for fn in props.REGISTRY.values())
     if uncovered:
         lines.append(f"  !! {uncovered} faces marked hidden that nothing covers "
