@@ -36,10 +36,22 @@ PALETTE = {
     # concrete / neutral filler
     "concrete": [(0x40, 0x40, 0x40), (0x68, 0x68, 0x68), (0x90, 0x90, 0x90),
                  (0xB8, 0xB8, 0xB8)],
+    # --- added for the bunker set -----------------------------------------
+    # Furniture needs ramps the three consumables never did. 32 entries could
+    # not carry timber, upholstery, rubber and brass without one of them
+    # borrowing another's ramp and reading as the wrong material.
+    "wood":     [(0x30, 0x20, 0x10), (0x58, 0x38, 0x20), (0x80, 0x58, 0x30),
+                 (0xA8, 0x80, 0x50)],
+    "fabric":   [(0x30, 0x28, 0x28), (0x50, 0x40, 0x38), (0x70, 0x58, 0x50),
+                 (0x90, 0x78, 0x68)],
+    "rubber":   [(0x10, 0x10, 0x10), (0x20, 0x20, 0x20), (0x38, 0x38, 0x38),
+                 (0x50, 0x50, 0x58)],
+    "brass":    [(0x48, 0x38, 0x10), (0x78, 0x60, 0x20), (0xA8, 0x88, 0x38),
+                 (0xD0, 0xB0, 0x58)],
 }
 
 CLUT = np.array([c for group in PALETTE.values() for c in group], dtype=np.float32)
-assert len(CLUT) == 32, f"CLUT must be 32 entries, got {len(CLUT)}"
+assert len(CLUT) == 48, f"CLUT must be 48 entries, got {len(CLUT)}"
 assert (CLUT.astype(int) % 8 == 0).all(), "every channel must be 15-bit safe"
 
 BAYER4 = np.array([[0, 8, 2, 10], [12, 4, 14, 6],
@@ -73,8 +85,8 @@ def save(rgb, path, strength=24.0):
 
 
 def swatch(path, cell=32):
-    """Render the CLUT as a documentation image, 8 columns x 4 rows."""
-    img = np.zeros((4 * cell, 8 * cell, 3), dtype=np.uint8)
+    """Render the CLUT as a documentation image, 8 columns x 6 rows."""
+    img = np.zeros((6 * cell, 8 * cell, 3), dtype=np.uint8)
     for i, c in enumerate(CLUT.astype(np.uint8)):
         r, col = divmod(i, 8)
         img[r * cell:(r + 1) * cell, col * cell:(col + 1) * cell] = c

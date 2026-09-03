@@ -5,6 +5,7 @@ tell of an amateur asset - they are what makes a bottle neck look smeared.
 """
 import math, sys
 import geometry as P
+import kit, props
 
 TOLERANCE = 1.15
 
@@ -36,12 +37,28 @@ def box_report(name, w, h, atlas_key):
     return ratio, [f"  {name}: {du:>6.0f} x {dv:>6.0f} px/m  ratio {ratio:.3f}"]
 
 
+def kit_report():
+    """Every box-composite prop. This is the gate for the bunker set."""
+    worst, lines = 1.0, []
+    for name, fn in props.REGISTRY.items():
+        tier, parts = fn()
+        w, rows = kit.density_report(parts, tier)
+        worst = max(worst, w)
+        if rows:
+            lines.append(f"  {name} (worst {w:.3f})")
+            lines += [f"  " + r for r in rows[:3]]
+    if not lines:
+        lines = [f"  all {len(props.REGISTRY)} props within tolerance"]
+    return worst, lines
+
+
 def main():
     worst = 1.0
     for title, (w, ls) in (("bottle", bottle_report()),
                            ("pack front", box_report("front", P.PACK_W, P.PACK_H, "front")),
                            ("pack side", box_report("side", P.PACK_D, P.PACK_H, "left")),
-                           ("pack top", box_report("top", P.PACK_W, P.PACK_D, "top"))):
+                           ("pack top", box_report("top", P.PACK_W, P.PACK_D, "top")),
+                           ("bunker set", kit_report())):
         print(title); print("\n".join(ls)); worst = max(worst, w)
     can_u = P.CAN_TEX[0] / (P.TAU * P.CAN_R)
     can_v = P.CAN_BODY_ROWS / P.CAN_H

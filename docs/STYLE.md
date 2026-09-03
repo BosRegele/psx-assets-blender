@@ -19,6 +19,52 @@ comes from every prop looking like it was made for the *same game*.
 | Scale | real-world metres | can 102mm, bottle 300mm, pack 88mm |
 | Pivot | base centre, +Z up | drops onto a floor without fixup |
 
+## Density tiers
+
+One density for the whole bundle does not survive contact with a 1.85m locker:
+it would need a 1024 atlas no PS1 ever had. Two tiers, 3:1 apart:
+
+| Tier | Density | Used for |
+|---|---|---|
+| `prop` | 551 px/m | handheld, under ~0.35m |
+| `furniture` | 184 px/m | everything larger |
+
+The ratio is not arbitrary. A 1.85m locker seen across a room covers roughly
+340 screen pixels, so 184 px/m lands near 1:1 on screen; at the handheld
+density it would carry 500 texels nobody ever resolves. The rule is **square
+texels within a prop, constant density within a tier** - not one number for the
+whole bundle.
+
+## Material grain is measured in metres
+
+Sizing noise off the face is a trap: a 1.85m locker gets 37px blocks and a
+0.15m tin gets 3px ones, so the same painter produces two different materials.
+`surfaces.GRAIN_M` fixes grain at 45/22/10mm and converts to pixels using the
+prop's density. Steel then looks like steel whatever it is wrapped around.
+
+## Atlas packing
+
+Faces are packed automatically (`kit.skyline_pack`) at the tier density, into
+the smallest atlas from a list that includes rectangular sizes. Shelf packing
+wasted about a third of the sheet - one tall item such as a barrel's wrap band
+set a shelf height everything after it had to clear.
+
+Packing is deterministic, sorted tallest-first with ties broken by name, so the
+texture baker and the Blender mesh builder always agree on placement. This is
+the same contract as `geometry.py` for the revolved props.
+
+A face whose surface is `"hidden"` still exists in the mesh - a hole would break
+shadow casting and any generated collider - but shares one 4px rect with every
+other hidden face. On the couch that is the difference between a 1024 and a
+512 sheet.
+
+## Baked edge shading
+
+Every painted face darkens its own border (`surfaces.edge_shade`). PS1-era art
+baked ambient occlusion into the texture because there was no runtime
+shadowing, and it is the single thing that stops a box composite reading as a
+pile of untextured blocks.
+
 ## Naming
 
 ```
